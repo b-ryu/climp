@@ -2,8 +2,9 @@
   "include": ["./src/**/*.ts"],
   "compilerOptions": {
     "outDir": "./build",
-    "target": "ES6",
+    "target": "ES5",
     "moduleResolution": "node",
+    "module": "CommonJS",
     "declaration": true,
     "esModuleInterop": true
   }
