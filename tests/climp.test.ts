@@ -1,5 +1,9 @@
+import climp from '../src';
+
 describe('climp', () => {
   it('works', () => {
-    expect(1).toEqual(1);
+    const cli = climp();
+
+    expect(cli()).toEqual('');
   });
 });

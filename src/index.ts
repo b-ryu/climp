@@ -1,1 +1,1 @@
-console.log('hello world');
+export {default} from './climp';

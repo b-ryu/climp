@@ -4,6 +4,7 @@
     "outDir": "./build",
     "target": "ES6",
     "moduleResolution": "node",
-    "declaration": true
+    "declaration": true,
+    "esModuleInterop": true
   }
 }
