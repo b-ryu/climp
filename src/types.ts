@@ -2,33 +2,39 @@
 export interface ClimpConfig {
   commands: Commands;
   global?: {
-    flags?: Flags;
+    args?: Args;
     positionalArgs?: PositionalArgs;
   };
+  errorMessages?: ErrorMessages;
+  logger?: Logger;
 }
 
 // Commands
-interface Commands {
-  [commandName: string]: Command;
-}
+type Commands = Record<string, Command>;
 
 interface Command {
   func: CommandFunction;
-  flags: Flags;
+  args: Args;
   positionalArgs: PositionalArgs;
 }
 
-// Command function
-type CommandFunction = any;
+type CommandFunction = (args: Record<string, string | number | boolean>) => any;
 
-// Flags
-interface Flags {
-  [flagName: string]: Flag;
-}
+// Args
+type Args = Record<string, Arg>;
 
-interface Flag {}
-
-// Positional args
 type PositionalArgs = PositionalArg[];
 
-interface PositionalArg {}
+interface Arg {
+  required?: boolean;
+}
+
+interface PositionalArg extends Arg {
+  name: string;
+}
+
+// Error messages
+interface ErrorMessages {}
+
+// Logging
+type Logger = any;
