@@ -8,10 +8,6 @@ climp is a simple tool to help build Node CLIs.
 yarn add climp
 ```
 
-## Screenshots
-
-[TODO: add screenshots]()
-
 ## Usage
 
 climp's default export is a function called `climp`, which takes in a config object that describes what you want your CLI to do and look like.
@@ -73,7 +69,14 @@ Below is a more detailed explanation/example of climp's config object:
       }
     }
   },
-  errorMessages: {},
-  logger: console.log
 }
 ```
+
+## Later stuff
+
+Things I'd eventually like to add in/improve on:
+
+- [ ] Built-in/generated `--help` function
+- [ ] Greater configurability in general
+- [ ] More specific/useful errors
+- [ ] More specific/useful TS types
