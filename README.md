@@ -42,7 +42,7 @@ const cli = climp({
 const args = [...process.argv];
 args.splice(0, 2);
 
-cli(args); // doSomething({argName: argValue})
+cli(args); // doSomething({argName: 'argValue'})
 ```
 
 Note that it's up to you to trim off any unwanted arguments (i.e. `node`, `my-script.js`) before passing it to climp's CLI. You might get an error otherwise.
