@@ -63,12 +63,12 @@ Below is a more detailed explanation/example of climp's config object:
     positionalArgs: [],
     args: {
       'arg-name': {
-          options: [],
           required: true,
           type: 'number'
       }
     }
   },
+  strict: true  // whether or not to throw errors on extra/unspecified args; defaults to false
 }
 ```
 
@@ -80,3 +80,4 @@ Things I'd eventually like to add in/improve on:
 - [ ] Greater configurability in general
 - [ ] More specific/useful errors
 - [ ] More specific/useful TS types
+- [ ] Support aliases

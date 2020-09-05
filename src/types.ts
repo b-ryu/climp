@@ -5,8 +5,9 @@ export interface ClimpConfig {
     args?: Args;
     positionalArgs?: PositionalArgs;
   };
-  errorMessages?: ErrorMessages;
-  logger?: Logger;
+  // strict?: boolean;
+  // errorMessages?: ErrorMessages;
+  // logger?: Logger;
 }
 
 // Commands
@@ -14,8 +15,8 @@ type Commands = Record<string, Command>;
 
 interface Command {
   func: CommandFunction;
-  args: Args;
-  positionalArgs: PositionalArgs;
+  args?: Args;
+  positionalArgs?: PositionalArgs;
 }
 
 type CommandFunction = (args: Record<string, string | number | boolean>) => any;
@@ -23,18 +24,46 @@ type CommandFunction = (args: Record<string, string | number | boolean>) => any;
 // Args
 type Args = Record<string, Arg>;
 
-type PositionalArgs = PositionalArg[];
+interface PositionalArgs {
+  required?: PositionalArg[];
+  optional?: PositionalArg[];
+}
 
-interface Arg {
+type Type = 'boolean' | 'string' | 'number' | 'cast';
+
+type Arg = BoolArg | SingularArg | FiniteArg | InfiniteArg;
+
+interface BasicArg {
   required?: boolean;
 }
 
-interface PositionalArg extends Arg {
-  name: string;
+// Note that boolean args (or "flags") can't be "required" in the usual sense;
+// including it counts as "true", omitting it counts as "false"
+interface BoolArg extends BasicArg {
+  type: 'boolean';
+  required?: false;
 }
 
-// Error messages
-interface ErrorMessages {}
+interface SingularArg extends BasicArg {
+  type: Exclude<Type, 'boolean'>;
+}
 
-// Logging
-type Logger = any;
+interface FiniteArg extends BasicArg {
+  types: Type[];
+}
+
+interface InfiniteArg extends BasicArg {
+  types: Type;
+  max?: number;
+}
+
+interface PositionalArg extends BasicArg {
+  name: string;
+  type?: Type;
+}
+
+// // Error messages
+// interface ErrorMessages {}
+
+// // Logging
+// type Logger = any;

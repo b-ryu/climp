@@ -1,8 +1,17 @@
-// import climp from '../src';
+import climp from '../src';
 
 describe('climp', () => {
   it('works', () => {
-    // const cli = climp();
+    // const cli = climp({
+    //   commands: {},
+    //   global: {
+    //     args: {
+    //       hello: {
+    //         type: 'boolean',
+    //       },
+    //     },
+    //   },
+    // });
 
     // expect(cli()).toEqual('');
 
