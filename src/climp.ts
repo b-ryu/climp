@@ -12,6 +12,7 @@ export default function (config: ClimpConfig) {
       throw new ClimpError({message: `You didn't pass in any arguments!`});
     }
 
+    // TODO support aliasing
     const [commandName, ...commandArgs] = cliArgs;
     const command = config.commands[commandName] || config.commands['_'];
 
