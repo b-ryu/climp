@@ -51,25 +51,27 @@ Note that it's up to you to trim off any unwanted arguments (i.e. `node`, `my-sc
 
 Below is a more detailed explanation/example of climp's config object:
 
-```js
-{
-  commands: {
-    'command-name': {
-      args: {},
-      positionalArgs: []
-    }
-  },
-  global: {
-    positionalArgs: [],
-    args: {
-      'arg-name': {
-          required: true,
-          type: 'number'
-      }
-    }
-  }
+```ts
+interface Config {
+  commands: Commands;
+  global?: {
+    args?: Args;
+    positionalArgs?: PositionalArgs;
+  };
 }
 ```
+
+### `Commands`
+
+_TODO write docs lol_
+
+### `Args`
+
+_TODO write docs lol_
+
+### `PositonalArgs`
+
+_TODO write docs lol_
 
 ## Errors
 
