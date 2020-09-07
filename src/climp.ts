@@ -23,7 +23,7 @@ import {
 import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
 export default function (config: ClimpConfig) {
-  return (cliArgs: string[]) => {
+  return (cliArgs: string[] = []) => {
     const [commandName, ...commandArgs] = cliArgs;
     const command = config.commands[commandName] || config.commands['_'];
 
