@@ -4,8 +4,6 @@ climp is a simple tool to help build Node CLIs.
 
 ## Installation
 
-_TODO: Publish_
-
 ```
 yarn add climp
 ```
@@ -105,6 +103,19 @@ In the future I may plan on adding an error-handler config option to help make t
 
 Things I'd eventually like to add/improve on:
 
+**Primary**
+
+- [ ] Support infinite positional args
+- [ ] Support no-args case
+- [ ] Support aliases
+  - [ ] Support catch-all function for transforming command names
+- [ ] Tests
+- [ ] Preprocessing/optimizations
+- [ ] Flesh out docs
+- [ ] Publish
+
+**Backlog**
+
 - [ ] Built-in/generated `--help` function
 - [ ] Greater configurability in general
 - [ ] Improved errors
@@ -112,6 +123,6 @@ Things I'd eventually like to add/improve on:
   - [ ] More specialized error types
   - [ ] More extensive type errors
 - [ ] More specific/useful TS types
-- [ ] Support aliases
 - [ ] Config/arg validators
 - [ ] Error-handling config
+- [ ] Publish script
