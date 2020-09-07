@@ -60,8 +60,10 @@ export interface InfiniteArg extends BasicArg {
   max?: number;
 }
 
+// TODO rethink pos args strategy
+// Named args
 interface PositionalArg extends BasicArg {
-  name: string;
+  name?: string | number;
   type?: Type;
 }
 

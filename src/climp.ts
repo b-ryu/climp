@@ -187,9 +187,10 @@ export default function (config: ClimpConfig) {
           });
         }
 
-        const {name: strippedArgName, type: argValueType} = posArgs[
-          firstUnused
-        ];
+        const {
+          name: strippedArgName = firstUnused,
+          type: argValueType,
+        } = posArgs[firstUnused];
 
         const castedArgValue = castArgValue(argValue, argValueType);
 
