@@ -1,13 +1,17 @@
-// TODO support aliasing
-// TODO preprocess/validate config (i.e. validate arg names, argTypes, generate defaults, normalizePositionalArgs, no duplicate names)
-// TODO make arg types optional, use defaults (e.g. "cast" and SingularArg)
-// TODO preprocess cliArgs (i.e. stripArgName, isArgName)
-// TODO extract code to trim down this file's line count
-// TODO extract out nameless command key into const
-// TODO improve naming
-// TODO make this prefix configurable
-// TODO make string arg validation configurable (i.e. "strict" arg values)
-// TODO emit warnings
+/*
+  TODO
+  
+  - support aliasing
+  - preprocess/validate config (i.e. validate arg names, argTypes, generate defaults, normalizePositionalArgs, no duplicate names)
+  - make arg types optional, use defaults (e.g. "cast" and SingularArg)
+  - preprocess cliArgs (i.e. stripArgName, isArgName)
+  - extract code to trim down this file's line count
+  - extract out nameless command key into const
+  - improve naming
+  - make this prefix configurable
+  - make string arg validation configurable (i.e. "strict" arg values)
+  - emit warnings
+*/
 
 import ClimpError from './errors';
 import {
@@ -64,7 +68,6 @@ export default function (config: ClimpConfig) {
     ];
     let posArgIndex = 0;
 
-    // Parse args
     const argObj = {};
 
     let index = 0;
@@ -202,7 +205,6 @@ export default function (config: ClimpConfig) {
       } else {
         const argValue = commandArgs[index];
 
-        // Positional args
         if (posArgIndex >= posArgs.length) {
           throw new ClimpError({
             message: `Extra positional argument "${argValue}" was provided; only at most ${posArgs.length} expected`,
@@ -231,7 +233,6 @@ export default function (config: ClimpConfig) {
       ++index;
     }
 
-    // Check for unused args
     Object.keys(args).forEach((argName) => {
       if (
         argType(args[argName]) !== 'boolean' &&

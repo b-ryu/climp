@@ -17,7 +17,7 @@ It returns another function that you can then pass arguments to. Your generated 
 ```js
 // my-script.js
 
-const climp = require('climp');
+const climp = require('climp').default;
 
 // Import functions from your own code
 const {doSomething, doAnotherThing} = require('./my-code');

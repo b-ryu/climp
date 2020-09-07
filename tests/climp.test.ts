@@ -15,7 +15,7 @@ describe('climp', () => {
         },
       });
 
-      expect(cli([])).toEqual({});
+      expect(cli([])).toStrictEqual({});
     });
 
     it('accepts commands without any args', () => {
@@ -27,7 +27,7 @@ describe('climp', () => {
         },
       });
 
-      expect(cli(['cmd'])).toEqual({});
+      expect(cli(['cmd'])).toStrictEqual({});
     });
 
     it('parses named args', () => {
@@ -44,7 +44,9 @@ describe('climp', () => {
         },
       });
 
-      expect(cli(['cmd', '--arg1', '--arg3', '34', '--arg2', 'test'])).toEqual({
+      expect(
+        cli(['cmd', '--arg1', '--arg3', '34', '--arg2', 'test'])
+      ).toStrictEqual({
         arg1: true,
         arg2: 'test',
         arg3: 34,
@@ -63,7 +65,7 @@ describe('climp', () => {
         },
       });
 
-      expect(cli(['cmd', 'true', 'test'])).toEqual({
+      expect(cli(['cmd', 'true', 'test'])).toStrictEqual({
         0: true,
         arg1: 'test',
       });
@@ -81,7 +83,7 @@ describe('climp', () => {
         },
       });
 
-      expect(cli(['cmd', 'true', '2', '2test'])).toEqual({
+      expect(cli(['cmd', 'true', '2', '2test'])).toStrictEqual({
         0: true,
         arg1: 2,
         2: '2test',
@@ -118,7 +120,7 @@ describe('climp', () => {
           '123',
           '123',
         ])
-      ).toEqual({
+      ).toStrictEqual({
         0: false,
         arg2: 'test2',
         arg4: [false, 'test1'],
@@ -127,9 +129,52 @@ describe('climp', () => {
       });
     });
 
-    // it('parses a mix of command and global args');
+    it('parses a mix of command and global args', () => {
+      const cli = climp({
+        commands: {
+          cmd: {
+            func: testFunc,
+            positionalArgs: {
+              optional: ['number', 'string'],
+            },
+          },
+        },
+        global: {
+          positionalArgs: {
+            optional: ['boolean', {name: 'arg5', type: 'string'}],
+          },
+        },
+      });
 
-    // it('handles unspecified number of args');
+      expect(cli(['cmd', 'false', '2', '1', 'test2'])).toStrictEqual({
+        0: false,
+        arg5: '2',
+        2: 1,
+        3: 'test2',
+      });
+    });
+
+    it('handles unspecified number of args', () => {
+      const cli = climp({
+        commands: {
+          cmd: {
+            func: testFunc,
+            positionalArgs: {
+              optional: {
+                types: 'string',
+              },
+            },
+          },
+        },
+      });
+
+      expect(cli(['cmd'])).toStrictEqual({});
+      expect(cli(['cmd', 'arg1', 'arg2', 'arg3'])).toStrictEqual({
+        0: 'arg1',
+        1: 'arg2',
+        2: 'arg3',
+      });
+    });
 
     // it('accepts the omission of optional args');
   });
