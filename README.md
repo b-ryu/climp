@@ -105,9 +105,10 @@ Things I'd eventually like to add/improve on:
 
 - [ ] Built-in/generated `--help` function
 - [ ] Greater configurability in general
-- [ ] More specific/useful errors
+- [ ] Improved errors
   - [ ] Pass in useful info in error object
   - [ ] More specialized error types
+  - [ ] More extensive type errors
 - [ ] More specific/useful TS types
 - [ ] Support aliases
 - [ ] Config/arg validators
