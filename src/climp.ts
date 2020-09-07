@@ -34,7 +34,9 @@ export default function (config: ClimpConfig) {
 
     if (command == undefined) {
       if (commandName === undefined) {
-        throw new ClimpError({message: `You didn't pass in any arguments!`});
+        throw new ClimpError({
+          message: `No arguments provided, and default command does not exist`,
+        });
       } else {
         throw new ClimpError({
           message: `${commandName} is not a recognized command`,
