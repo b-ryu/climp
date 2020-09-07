@@ -1,23 +1,36 @@
+// TODO extract code to trim down this file's line count
+
 import ClimpError from './errors';
-import {stripArgName, isArgName, argType, castArgValue, isType} from './util';
+import {
+  stripArgName,
+  isArgName,
+  argType,
+  castArgValue,
+  isType,
+  normalizePositionalArgs,
+  getMinPosArgs,
+} from './util';
 
 import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
 export default function (config: ClimpConfig) {
-  // TODO preprocess/validate config (i.e. no spaces/weird characters in names, argTypes, duplicate names)
+  // TODO preprocess/validate config (i.e. validate arg names, argTypes, normalizePositionalArgs, no duplicate names)
 
   return (cliArgs: string[]) => {
+    // TODO preprocess cliArgs (i.e. stripArgName, isArgName)
+
     if (cliArgs.length === 0) {
       // TODO write some more specific errors
+      // TODO extract out messages into const
       throw new ClimpError({message: `You didn't pass in any arguments!`});
     }
 
     // TODO support aliasing
     const [commandName, ...commandArgs] = cliArgs;
+    // TODO extract out nameless command key into const
     const command = config.commands[commandName] || config.commands['_'];
 
     // TODO improve naming
-    // TODO preprocess passed-in cliArgs (i.e. isArgName, stripArgName)
 
     if (command == undefined) {
       throw new ClimpError({
@@ -31,14 +44,23 @@ export default function (config: ClimpConfig) {
       ...(config?.global?.args || {}),
     };
 
-    const requiredGlobalPosArgs =
-      config?.global?.positionalArgs?.required || [];
-    const requiredCommandPosArgs = command.positionalArgs?.required || [];
     const posArgs = [
-      ...requiredGlobalPosArgs,
-      ...requiredCommandPosArgs,
-      ...(config?.global?.positionalArgs?.optional || []),
-      ...(command.positionalArgs?.optional || []),
+      ...normalizePositionalArgs(
+        config?.global?.positionalArgs?.required,
+        cliArgs.length
+      ),
+      ...normalizePositionalArgs(
+        command.positionalArgs?.required,
+        cliArgs.length
+      ),
+      ...normalizePositionalArgs(
+        config?.global?.positionalArgs?.optional,
+        cliArgs.length
+      ),
+      ...normalizePositionalArgs(
+        command.positionalArgs?.optional,
+        cliArgs.length
+      ),
     ];
     let posArgIndex = 0;
 
@@ -227,11 +249,12 @@ export default function (config: ClimpConfig) {
       }
     });
 
-    const totalRequirePosArgs =
-      requiredCommandPosArgs.length + requiredGlobalPosArgs.length;
-    if (posArgIndex < totalRequirePosArgs - 1) {
+    const totalRequiredPosArgs =
+      getMinPosArgs(config?.global?.positionalArgs?.required) +
+      getMinPosArgs(command.positionalArgs?.required);
+    if (posArgIndex < totalRequiredPosArgs - 1) {
       throw new ClimpError({
-        message: `${totalRequirePosArgs} positional arguments were required but only ${posArgIndex} were passed in`,
+        message: `${totalRequiredPosArgs} positional arguments were required but only ${posArgIndex} were passed in`,
       });
     }
 

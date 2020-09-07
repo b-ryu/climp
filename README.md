@@ -103,18 +103,15 @@ In the future I may plan on adding an error-handler config option to help make t
 
 Things I'd eventually like to add/improve on:
 
-**Primary**
+**Primary features**
 
 - [ ] Support infinite positional args
 - [ ] Support no-args case
 - [ ] Support aliases
   - [ ] Support catch-all function for transforming command names
-- [ ] Tests
 - [ ] Preprocessing/optimizations
-- [ ] Flesh out docs
-- [ ] Publish
 
-**Backlog**
+**Secondary features**
 
 - [ ] Built-in/generated `--help` function
 - [ ] Greater configurability in general
@@ -125,4 +122,11 @@ Things I'd eventually like to add/improve on:
 - [ ] More specific/useful TS types
 - [ ] Config/arg validators
 - [ ] Error-handling config
+
+**Project items**
+
+- [ ] Tests
+- [ ] Flesh out docs
+- [ ] Publish
 - [ ] Publish script
+- [ ] Use Gitmojis for commits

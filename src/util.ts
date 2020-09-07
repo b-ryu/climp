@@ -1,4 +1,4 @@
-import type {Arg, Type, PositionalArg} from './types';
+import type {Arg, Type, PositionalArg, PostionalArgsDescriptor} from './types';
 
 export function stripArgName(argName: string) {
   return argName.substring(2);
@@ -45,4 +45,25 @@ export function castArgValue(argValue: string, type: Type) {
 
 export function isType(positionalArg: PositionalArg): positionalArg is Type {
   return typeof positionalArg === 'string';
+}
+
+export function normalizePositionalArgs(
+  positionalArgs: PostionalArgsDescriptor = [],
+  defaultMax: number
+): PositionalArg[] {
+  if (Array.isArray(positionalArgs)) {
+    return positionalArgs;
+  }
+
+  const {types, max = defaultMax} = positionalArgs;
+
+  return Array(max).fill(types);
+}
+
+export function getMinPosArgs(positionalArgs: PostionalArgsDescriptor = []) {
+  if (Array.isArray(positionalArgs)) {
+    return positionalArgs.length;
+  }
+
+  return positionalArgs.min || 0;
 }

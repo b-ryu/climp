@@ -21,15 +21,11 @@ interface Command {
 
 type CommandFunction = (args: Record<string, string | number | boolean>) => any;
 
+// Types
+export type Type = 'boolean' | 'string' | 'number' | 'cast';
+
 // Args
 type Args = Record<string, Arg>;
-
-interface PositionalArgs {
-  required?: PositionalArg[];
-  optional?: PositionalArg[];
-}
-
-export type Type = 'boolean' | 'string' | 'number' | 'cast';
 
 export type Arg = BoolArg | SingularArg | FiniteArg | InfiniteArg;
 
@@ -61,11 +57,25 @@ export interface InfiniteArg extends BasicArg {
 }
 
 // TODO rethink pos args strategy
+
+interface PositionalArgs {
+  required?: PostionalArgsDescriptor;
+  optional?: PostionalArgsDescriptor;
+}
+
+export type PostionalArgsDescriptor = PositionalArg[] | InfinitePositionalArgs;
+
 export type PositionalArg = NamedPositionalArg | Type;
 
 interface NamedPositionalArg {
   name?: string | number;
   type?: Type;
+}
+
+interface InfinitePositionalArgs {
+  types: Type;
+  min?: number;
+  max?: number;
 }
 
 // // Error messages
