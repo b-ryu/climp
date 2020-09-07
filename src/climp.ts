@@ -30,13 +30,14 @@ export default function (config: ClimpConfig) {
       ...(command.args || {}),
       ...(config?.global?.args || {}),
     };
+
     const posArgs = [
       ...(config?.global?.positionalArgs?.required || []),
       ...(command.positionalArgs?.required || []),
       ...(config?.global?.positionalArgs?.optional || []),
       ...(command.positionalArgs?.optional || []),
     ];
-    let firstUnused = 0;
+    let posArgIndex = 0;
 
     // Parse args
     const argObj = {};
@@ -182,28 +183,28 @@ export default function (config: ClimpConfig) {
         const argValue = commandArgs[index];
 
         // Positional args
-        if (firstUnused >= posArgs.length - 1) {
+        if (posArgIndex >= posArgs.length - 1) {
           throw new ClimpError({
             message: `Extra positional argument "${argValue}" was provided; only at most ${posArgs.length} expected`,
           });
         }
 
         const {
-          name: strippedArgName = firstUnused,
+          name: strippedArgName = posArgIndex,
           type: argValueType,
-        } = posArgs[firstUnused];
+        } = posArgs[posArgIndex];
 
         const castedArgValue = castArgValue(argValue, argValueType);
 
         if (castedArgValue === null) {
           throw new ClimpError({
-            message: `Positional argument ("${strippedArgName}", at index ${index}:${firstUnused}) expected a value of type "${argValueType}", but was given "${argValue}"`,
+            message: `Positional argument ("${strippedArgName}", at index ${index}:${posArgIndex}) expected a value of type "${argValueType}", but was given "${argValue}"`,
           });
         }
 
         argObj[strippedArgName] = castedArgValue;
 
-        ++firstUnused;
+        ++posArgIndex;
       }
 
       ++index;
@@ -222,9 +223,9 @@ export default function (config: ClimpConfig) {
       }
     });
 
-    if (firstUnused < posArgs.length && posArgs[firstUnused].required) {
+    if (posArgIndex < posArgs.length && posArgs[posArgIndex].required) {
       throw new ClimpError({
-        message: `Positional argument "${posArgs[firstUnused].name}" is required but was not passed in (arg index: ${firstUnused})`,
+        message: `Positional argument "${posArgs[posArgIndex].name}" is required but was not passed in (arg index: ${posArgIndex})`,
       });
     }
 

@@ -61,7 +61,6 @@ export interface InfiniteArg extends BasicArg {
 }
 
 // TODO rethink pos args strategy
-// Named args
 interface PositionalArg extends BasicArg {
   name?: string | number;
   type?: Type;
