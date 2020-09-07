@@ -44,6 +44,8 @@ interface BoolArg extends BasicArg {
   required?: false;
 }
 
+// TODO make arg types optional, use defaults (e.g. "cast" and SingularArg)
+
 export interface SingularArg extends BasicArg {
   type: Exclude<Type, 'boolean'>;
 }

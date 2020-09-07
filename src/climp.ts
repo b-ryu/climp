@@ -4,7 +4,7 @@ import {stripArgName, isArgName, argType, castArgValue} from './util';
 import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
 export default function (config: ClimpConfig) {
-  // TODO preprocess/validate config (i.e. no spaces/weird characters in names, argTypes)
+  // TODO preprocess/validate config (i.e. no spaces/weird characters in names, argTypes, duplicate names)
 
   return (cliArgs: string[]) => {
     if (cliArgs.length === 0) {
@@ -44,6 +44,8 @@ export default function (config: ClimpConfig) {
 
     while (index < commandArgs.length) {
       if (isArgName(commandArgs[index])) {
+        // Named args
+
         const argName = commandArgs[index];
         const strippedArgName = stripArgName(argName);
         const arg = args[strippedArgName];
@@ -65,7 +67,7 @@ export default function (config: ClimpConfig) {
             const argValues = [];
 
             argTypes.forEach((type, argIndex) => {
-              if (index + argIndex === commandArgs.length - 1) {
+              if (index + argIndex >= commandArgs.length - 1) {
                 throw new ClimpError({
                   message: `Argument "${argName}" expects ${argTypes.length} values; ${argIndex} provided`,
                 });
@@ -91,7 +93,7 @@ export default function (config: ClimpConfig) {
               argValues.push(castedArgValue);
             });
 
-            argObj[argName] = argValues;
+            argObj[strippedArgName] = argValues;
 
             index += argTypes.length;
 
@@ -109,7 +111,7 @@ export default function (config: ClimpConfig) {
             while (argValues.length < max) {
               const argIndex = argValues.length;
 
-              if (index + argIndex === commandArgs.length - 1) {
+              if (index + argIndex >= commandArgs.length - 1) {
                 break;
               }
 
@@ -144,7 +146,7 @@ export default function (config: ClimpConfig) {
             break;
           }
           case 'singular': {
-            if (index === commandArgs.length - 1) {
+            if (index >= commandArgs.length - 1) {
               throw new ClimpError({
                 message: `Argument "${argName}" expects a value; none was provided`,
               });
@@ -176,7 +178,30 @@ export default function (config: ClimpConfig) {
           }
         }
       } else {
-        // pos args
+        const argValue = commandArgs[index];
+
+        // Positional args
+        if (firstUnused >= posArgs.length - 1) {
+          throw new ClimpError({
+            message: `Extra positional argument "${argValue}" was provided; only at most ${posArgs.length} expected`,
+          });
+        }
+
+        const {name: strippedArgName, type: argValueType} = posArgs[
+          firstUnused
+        ];
+
+        const castedArgValue = castArgValue(argValue, argValueType);
+
+        if (castedArgValue === null) {
+          throw new ClimpError({
+            message: `Positional argument ("${strippedArgName}", at index ${index}:${firstUnused}) expected a value of type "${argValueType}", but was given "${argValue}"`,
+          });
+        }
+
+        argObj[strippedArgName] = castedArgValue;
+
+        ++firstUnused;
       }
 
       ++index;
