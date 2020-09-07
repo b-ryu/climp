@@ -1,4 +1,4 @@
-import type {Arg, Type} from './types';
+import type {Arg, Type, PositionalArg} from './types';
 
 export function stripArgName(argName: string) {
   return argName.substring(2);
@@ -41,4 +41,8 @@ export function castArgValue(argValue: string, type: Type) {
   }
 
   return argValue;
+}
+
+export function isType(positionalArg: PositionalArg): positionalArg is Type {
+  return typeof positionalArg === 'string';
 }

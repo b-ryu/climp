@@ -1,5 +1,5 @@
 import ClimpError from './errors';
-import {stripArgName, isArgName, argType, castArgValue} from './util';
+import {stripArgName, isArgName, argType, castArgValue, isType} from './util';
 
 import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
@@ -31,9 +31,12 @@ export default function (config: ClimpConfig) {
       ...(config?.global?.args || {}),
     };
 
+    const requiredGlobalPosArgs =
+      config?.global?.positionalArgs?.required || [];
+    const requiredCommandPosArgs = command.positionalArgs?.required || [];
     const posArgs = [
-      ...(config?.global?.positionalArgs?.required || []),
-      ...(command.positionalArgs?.required || []),
+      ...requiredGlobalPosArgs,
+      ...requiredCommandPosArgs,
       ...(config?.global?.positionalArgs?.optional || []),
       ...(command.positionalArgs?.optional || []),
     ];
@@ -189,10 +192,11 @@ export default function (config: ClimpConfig) {
           });
         }
 
+        const posArg = posArgs[posArgIndex];
         const {
           name: strippedArgName = posArgIndex,
           type: argValueType,
-        } = posArgs[posArgIndex];
+        } = isType(posArg) ? {type: posArg} : posArg;
 
         const castedArgValue = castArgValue(argValue, argValueType);
 
@@ -223,9 +227,11 @@ export default function (config: ClimpConfig) {
       }
     });
 
-    if (posArgIndex < posArgs.length && posArgs[posArgIndex].required) {
+    const totalRequirePosArgs =
+      requiredCommandPosArgs.length + requiredGlobalPosArgs.length;
+    if (posArgIndex < totalRequirePosArgs - 1) {
       throw new ClimpError({
-        message: `Positional argument "${posArgs[posArgIndex].name}" is required but was not passed in (arg index: ${posArgIndex})`,
+        message: `${totalRequirePosArgs} positional arguments were required but only ${posArgIndex} were passed in`,
       });
     }
 
