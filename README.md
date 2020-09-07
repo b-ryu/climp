@@ -47,6 +47,8 @@ cli(args); // doSomething({argName: 'argValue'})
 
 Note that it's up to you to trim off any unwanted arguments (i.e. `node`, `my-script.js`) before passing it to climp's CLI. You might get an error otherwise.
 
+Check out the tests (`tests/climp.test.ts`) for some more examples on usage.
+
 ## Config
 
 Below is a more detailed explanation/example of climp's config object:
@@ -69,7 +71,7 @@ _TODO write docs lol_
 
 _TODO write docs lol_
 
-### `PositonalArgs`
+### `PositionalArgs`
 
 _TODO write docs lol_
 
