@@ -5,9 +5,6 @@ export interface ClimpConfig {
     args?: Args;
     positionalArgs?: PositionalArgs;
   };
-  // strict?: boolean;
-  // errorMessages?: ErrorMessages;
-  // logger?: Logger;
 }
 
 // Commands
