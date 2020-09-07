@@ -58,7 +58,7 @@ Below is a more detailed explanation/example of climp's config object:
       args: {},
       positionalArgs: []
     }
-  }
+  },
   global: {
     positionalArgs: [],
     args: {
@@ -67,17 +67,48 @@ Below is a more detailed explanation/example of climp's config object:
           type: 'number'
       }
     }
-  },
-  strict: true  // whether or not to throw errors on extra/unspecified args; defaults to false
+  }
 }
 ```
 
-## Later stuff
+## Errors
 
-Things I'd eventually like to add in/improve on:
+climp also exports `ClimpError` as a named export. It throws `ClimpError`s when it runs into parsing/validating issues, both on `climp` calls and on calls to the returned function returned by `climp`. The intended use case is that the consumer wrap these calls in try-catch blocks so they may define their own error-handling behaviour.
+
+```js
+try {
+  cli = climp(config);
+} catch (e) {
+  if (e instanceof ClimpError) {
+    // handle climp error (e.g. log, etc.)
+  } else {
+    // handle other errors
+  }
+}
+
+try {
+  cli(args);
+} catch (e) {
+  if (e instanceof ClimpError) {
+    // handle climp error (e.g. log, etc.)
+  } else {
+    // handle other errors
+  }
+}
+```
+
+In the future I may plan on adding an error-handler config option to help make this a little nicer-looking.
+
+## 🚧 Later stuff
+
+Things I'd eventually like to add/improve on:
 
 - [ ] Built-in/generated `--help` function
 - [ ] Greater configurability in general
 - [ ] More specific/useful errors
+  - [ ] Pass in useful info in error object
+  - [ ] More specialized error types
 - [ ] More specific/useful TS types
 - [ ] Support aliases
+- [ ] Config/arg validators
+- [ ] Error-handling config
