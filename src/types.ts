@@ -29,9 +29,9 @@ interface PositionalArgs {
   optional?: PositionalArg[];
 }
 
-type Type = 'boolean' | 'string' | 'number' | 'cast';
+export type Type = 'boolean' | 'string' | 'number' | 'cast';
 
-type Arg = BoolArg | SingularArg | FiniteArg | InfiniteArg;
+export type Arg = BoolArg | SingularArg | FiniteArg | InfiniteArg;
 
 interface BasicArg {
   required?: boolean;
@@ -44,16 +44,17 @@ interface BoolArg extends BasicArg {
   required?: false;
 }
 
-interface SingularArg extends BasicArg {
+export interface SingularArg extends BasicArg {
   type: Exclude<Type, 'boolean'>;
 }
 
-interface FiniteArg extends BasicArg {
+export interface FiniteArg extends BasicArg {
   types: Type[];
 }
 
-interface InfiniteArg extends BasicArg {
+export interface InfiniteArg extends BasicArg {
   types: Type;
+  min?: number;
   max?: number;
 }
 
