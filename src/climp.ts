@@ -13,7 +13,7 @@ export default function (config: ClimpConfig) {
     }
 
     const [commandName, ...commandArgs] = cliArgs;
-    const command = config.commands[commandName];
+    const command = config.commands[commandName] || config.commands['_'];
 
     // TODO improve naming
     // TODO preprocess passed-in cliArgs (i.e. isArgName, stripArgName)
