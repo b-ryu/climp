@@ -6,6 +6,7 @@
     "moduleResolution": "node",
     "module": "CommonJS",
     "declaration": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "removeComments": true
   }
 }
