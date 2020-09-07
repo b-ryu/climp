@@ -4,6 +4,8 @@ climp is a simple tool to help build Node CLIs.
 
 ## Installation
 
+_TODO: Publish_
+
 ```
 yarn add climp
 ```
