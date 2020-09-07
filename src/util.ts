@@ -4,7 +4,6 @@ export function stripArgName(argName: string) {
   return argName.substring(2);
 }
 
-// TODO make this prefix configurable
 export function isArgName(arg: string) {
   return arg.startsWith('--');
 }

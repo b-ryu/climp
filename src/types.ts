@@ -40,8 +40,6 @@ interface BoolArg extends BasicArg {
   required?: false;
 }
 
-// TODO make arg types optional, use defaults (e.g. "cast" and SingularArg)
-
 export interface SingularArg extends BasicArg {
   type: Exclude<Type, 'boolean'>;
 }
@@ -56,8 +54,6 @@ export interface InfiniteArg extends BasicArg {
   max?: number;
 }
 
-// TODO rethink pos args strategy
-
 interface PositionalArgs {
   required?: PostionalArgsDescriptor;
   optional?: PostionalArgsDescriptor;
@@ -69,7 +65,7 @@ export type PositionalArg = NamedPositionalArg | Type;
 
 interface NamedPositionalArg {
   name?: string | number;
-  type?: Type;
+  type: Type;
 }
 
 interface InfinitePositionalArgs {
@@ -77,9 +73,3 @@ interface InfinitePositionalArgs {
   min?: number;
   max?: number;
 }
-
-// // Error messages
-// interface ErrorMessages {}
-
-// // Logging
-// type Logger = any;

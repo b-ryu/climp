@@ -1,4 +1,13 @@
+// TODO support aliasing
+// TODO preprocess/validate config (i.e. validate arg names, argTypes, generate defaults, normalizePositionalArgs, no duplicate names)
+// TODO make arg types optional, use defaults (e.g. "cast" and SingularArg)
+// TODO preprocess cliArgs (i.e. stripArgName, isArgName)
 // TODO extract code to trim down this file's line count
+// TODO extract out nameless command key into const
+// TODO improve naming
+// TODO make this prefix configurable
+// TODO make string arg validation configurable (i.e. "strict" arg values)
+// TODO emit warnings
 
 import ClimpError from './errors';
 import {
@@ -14,23 +23,9 @@ import {
 import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
 export default function (config: ClimpConfig) {
-  // TODO preprocess/validate config (i.e. validate arg names, argTypes, normalizePositionalArgs, no duplicate names)
-
   return (cliArgs: string[]) => {
-    // TODO preprocess cliArgs (i.e. stripArgName, isArgName)
-
-    // if (cliArgs.length === 0) {
-    //   // TODO write some more specific errors
-    //   // TODO extract out messages into const
-    //   throw new ClimpError({message: `You didn't pass in any arguments!`});
-    // }
-
-    // TODO support aliasing
     const [commandName, ...commandArgs] = cliArgs;
-    // TODO extract out nameless command key into const
     const command = config.commands[commandName] || config.commands['_'];
-
-    // TODO improve naming
 
     if (command == undefined) {
       if (commandName === undefined) {
@@ -44,7 +39,6 @@ export default function (config: ClimpConfig) {
       }
     }
 
-    // TODO lift some of this outside of closure
     const args = {
       ...(command.args || {}),
       ...(config?.global?.args || {}),
@@ -77,8 +71,6 @@ export default function (config: ClimpConfig) {
 
     while (index < commandArgs.length) {
       if (isArgName(commandArgs[index])) {
-        // Named args
-
         const argName = commandArgs[index];
         const strippedArgName = stripArgName(argName);
         const arg = args[strippedArgName];
@@ -108,7 +100,6 @@ export default function (config: ClimpConfig) {
 
               const argValue = commandArgs[index + argIndex + 1];
 
-              // TODO make this configurable (i.e. "strict" arg values)
               if (isArgName(argValue)) {
                 throw new ClimpError({
                   message: `You cannot pass "${argValue}" to argument "${argName}"; the "--" prefix is reserved for CLI options`,
@@ -150,7 +141,6 @@ export default function (config: ClimpConfig) {
 
               const argValue = commandArgs[index + argIndex + 1];
 
-              // TODO make this configurable (i.e. "strict" arg values)
               if (isArgName(argValue)) {
                 break;
               }
@@ -187,7 +177,6 @@ export default function (config: ClimpConfig) {
 
             const argValue = commandArgs[index + 1];
 
-            // TODO make this configurable (i.e. "strict" arg values)
             if (isArgName(argValue)) {
               throw new ClimpError({
                 message: `You cannot pass "${argValue}" to argument "${argName}"; the "--" prefix is reserved for CLI options`,
@@ -214,7 +203,7 @@ export default function (config: ClimpConfig) {
         const argValue = commandArgs[index];
 
         // Positional args
-        if (posArgIndex >= posArgs.length - 1) {
+        if (posArgIndex >= posArgs.length) {
           throw new ClimpError({
             message: `Extra positional argument "${argValue}" was provided; only at most ${posArgs.length} expected`,
           });

@@ -108,6 +108,7 @@ In the future I may plan on adding an error-handler config option to help make t
 - [ ] Support aliases
   - [ ] Support catch-all function for transforming command names
 - [ ] Preprocessing/optimizations
+- [ ] Support default types
 
 **Secondary features/backlog**
 
@@ -127,4 +128,4 @@ In the future I may plan on adding an error-handler config option to help make t
 - [ ] Flesh out docs
 - [ ] Publish
 - [ ] Publish script
-- [ ] Use Gitmojis for commits
+- [ ] Set up GH actions for automated testing
