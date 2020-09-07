@@ -19,11 +19,11 @@ export default function (config: ClimpConfig) {
   return (cliArgs: string[]) => {
     // TODO preprocess cliArgs (i.e. stripArgName, isArgName)
 
-    if (cliArgs.length === 0) {
-      // TODO write some more specific errors
-      // TODO extract out messages into const
-      throw new ClimpError({message: `You didn't pass in any arguments!`});
-    }
+    // if (cliArgs.length === 0) {
+    //   // TODO write some more specific errors
+    //   // TODO extract out messages into const
+    //   throw new ClimpError({message: `You didn't pass in any arguments!`});
+    // }
 
     // TODO support aliasing
     const [commandName, ...commandArgs] = cliArgs;
@@ -33,9 +33,13 @@ export default function (config: ClimpConfig) {
     // TODO improve naming
 
     if (command == undefined) {
-      throw new ClimpError({
-        message: `${commandName} is not a recognized command`,
-      });
+      if (commandName === undefined) {
+        throw new ClimpError({message: `You didn't pass in any arguments!`});
+      } else {
+        throw new ClimpError({
+          message: `${commandName} is not a recognized command`,
+        });
+      }
     }
 
     // TODO lift some of this outside of closure

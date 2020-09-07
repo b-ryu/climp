@@ -99,19 +99,17 @@ try {
 
 In the future I may plan on adding an error-handler config option to help make this a little nicer-looking.
 
-## 🚧 Later stuff
-
-Things I'd eventually like to add/improve on:
+## 🚧 TODO
 
 **Primary features**
 
-- [ ] Support infinite positional args
-- [ ] Support no-args case
+- [x] Support infinite positional args
+- [x] Support no-args case
 - [ ] Support aliases
   - [ ] Support catch-all function for transforming command names
 - [ ] Preprocessing/optimizations
 
-**Secondary features**
+**Secondary features/backlog**
 
 - [ ] Built-in/generated `--help` function
 - [ ] Greater configurability in general
