@@ -36,4 +36,6 @@ export const ErrorMessage = {
     `${required} positional arguments were required but only ${actual} were passed in`,
   ARG_NAME_VALUE: (argValue: string, argName: string) =>
     `You cannot pass "${argValue}" to argument "${argName}"; the "${ARGUMENT_PREFIX}" prefix is reserved for CLI options`,
+  UNEXPECTED_POS_ARG: (argValue) =>
+    `Unexpected positional argument "${argValue}"; please check your command options`,
 };

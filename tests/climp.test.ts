@@ -6,7 +6,7 @@ function testFunc(config) {
 }
 
 describe('climp', () => {
-  describe('arguments', () => {
+  describe.only('arguments', () => {
     it('accepts no args when a default command has been defined', () => {
       const cli = climp({
         commands: {

@@ -1,16 +1,10 @@
 /*
   TODO
+  - improve pos arg support
+  - validate config
   - support aliasing
-  - preprocess/validate config (i.e. validate arg names, argTypes, no duplicate names)
-  - make arg types optional, use defaults (e.g. "cast" and SingularArg)
-  - preprocess cliArgs (i.e. stripArgName, isArgName)
-  - extract code to trim down this file's line count
-  - extract out nameless command key into const
-  - improve naming
-  - make this prefix configurable
-  - make string arg validation configurable (i.e. "strict" arg values)
-  - emit warnings
-  - InfinitePositionalArgs types: ignore/omit minimum on optional
+  - reduce LOC
+  - add more tests
 */
 
 import ClimpError from './errors';
@@ -19,26 +13,17 @@ import {
   isArgName,
   argType,
   castArgValue,
-  isType,
-  normalizePositionalArgs,
-  requiredNumOfArgs,
+  getCommandArgs,
+  getArgs,
 } from './util';
-import {DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
+import {ErrorMessage} from './constants';
 
-import type {
-  ClimpConfig,
-  SingularArg,
-  FiniteArg,
-  InfiniteArg,
-  Command,
-  Arg,
-  PositionalArg,
-} from './types';
+import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
 
 export default function (config: ClimpConfig) {
-  return (argv: string[] = []) => {
-    const totalArgCount = argv.length;
+  // TODO validate config
 
+  return (argv: string[] = []) => {
     /*
       Get command
     */
@@ -49,7 +34,7 @@ export default function (config: ClimpConfig) {
       Get args
     */
 
-    const [args, posArgs] = getArgs(command, config, totalArgCount);
+    const [args, posArgs] = getArgs(command, config);
 
     /*
       Parse args
@@ -58,7 +43,6 @@ export default function (config: ClimpConfig) {
     const argObj = {};
 
     let parseIndex = 0; // keep track of how many args we've parsed
-    let posArgIndex = 0; // keep track of how many pos args we've parsed
 
     while (parseIndex < parseArgs.length) {
       const parseArg = parseArgs[parseIndex];
@@ -142,7 +126,7 @@ export default function (config: ClimpConfig) {
             const {
               types: type,
               min = 0,
-              max = totalArgCount,
+              max = argv.length,
             } = arg as InfiniteArg;
 
             const values = [];
@@ -229,36 +213,9 @@ export default function (config: ClimpConfig) {
           Positional arg
         */
 
-        const value = parseArg;
+        const [posArgName, posArgValue] = posArgs.parse(parseArg);
 
-        if (posArgIndex >= posArgs.length) {
-          throw new ClimpError({
-            message: ErrorMessage.TOO_MANY_POS_ARGS(value, posArgs.length),
-          });
-        }
-
-        const posArg = posArgs[posArgIndex];
-        const {name: posArgName = posArgIndex, type} = isType(posArg)
-          ? {type: posArg}
-          : posArg;
-
-        const castedArgValue = castArgValue(value, type);
-
-        if (castedArgValue === null) {
-          // TODO improve parsing: what if pos args are optional
-          throw new ClimpError({
-            message: ErrorMessage.WRONG_POS_ARG_TYPE(
-              parseIndex,
-              posArgIndex,
-              type,
-              value
-            ),
-          });
-        }
-
-        argObj[posArgName] = castedArgValue;
-
-        ++posArgIndex;
+        argObj[posArgName] = posArgValue;
       }
 
       ++parseIndex;
@@ -269,99 +226,22 @@ export default function (config: ClimpConfig) {
     */
 
     Object.keys(args).forEach((argName) => {
-      if (
-        argType(args[argName]) !== 'boolean' &&
-        args[argName].required &&
-        argObj[argName] == undefined
-      ) {
+      if (args[argName].required && argObj[argName] == undefined) {
         throw new ClimpError({
           message: ErrorMessage.MISSING_REQUIRED_ARG(argName),
         });
       }
     });
 
-    const totalRequiredPosArgs =
-      requiredNumOfArgs(config?.global?.positionalArgs?.required) +
-      requiredNumOfArgs(command.positionalArgs?.required);
-
-    if (posArgIndex < totalRequiredPosArgs) {
+    if (!posArgs.minimumMet()) {
       throw new ClimpError({
         message: ErrorMessage.NOT_ENOUGH_POS_ARGS(
-          totalRequiredPosArgs,
-          posArgIndex
+          posArgs.minRequired,
+          posArgs.readIn
         ),
       });
     }
 
     return command.func(argObj);
   };
-}
-
-/*
-  Derive a command and its options from a list of args and a config
-*/
-function getCommandArgs(
-  args: string[],
-  config: ClimpConfig
-): [Command, string[]] {
-  const {commands} = config;
-  const [firstArg, ...restArgs] = args;
-
-  if (firstArg === undefined) {
-    if (commands[DEFAULT_COMMAND_NAME]) {
-      return [commands[DEFAULT_COMMAND_NAME], []];
-    } else {
-      throw new ClimpError({
-        message: ErrorMessage.NO_ARGS(),
-      });
-    }
-  } else if (commands[firstArg]) {
-    return [commands[firstArg], restArgs];
-  } else if (commands[DEFAULT_COMMAND_NAME]) {
-    return [commands[DEFAULT_COMMAND_NAME], args];
-  } else {
-    throw new ClimpError({
-      message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
-    });
-  }
-}
-
-/*
-  Derive consolidated args/positional args for a given command
-*/
-function getArgs(
-  command: Command,
-  config: ClimpConfig,
-  maxArgCount: number
-): [Record<string, Arg>, PositionalArg[]] {
-  const {
-    args: cArgs = {},
-    positionalArgs: {
-      optional: cOptPosArgs = [],
-      required: cReqPosArgs = [],
-    } = {},
-  } = command;
-  const {
-    global: {
-      args: gArgs = {},
-      positionalArgs: {
-        optional: gOptPosArgs = [],
-        required: gReqPosArgs = [],
-      } = {},
-    } = {},
-  } = config;
-
-  return [
-    {
-      ...cArgs,
-      ...gArgs,
-    },
-    [
-      // TODO improve this
-      ...normalizePositionalArgs(gReqPosArgs, maxArgCount),
-      ...normalizePositionalArgs(cReqPosArgs, maxArgCount),
-      ...normalizePositionalArgs(gOptPosArgs, maxArgCount),
-      ...normalizePositionalArgs(cOptPosArgs, maxArgCount),
-    ],
-  ];
 }

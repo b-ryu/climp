@@ -1,6 +1,15 @@
-import {ARGUMENT_PREFIX} from './constants';
+import {ARGUMENT_PREFIX, DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
+import PosArgs from './PosArgs';
 
-import type {Arg, Type, PositionalArg, PostionalArgsDescriptor} from './types';
+import ClimpError from './errors';
+import type {
+  Arg,
+  Type,
+  PositionalArg,
+  PositionalArgsDescriptor,
+  ClimpConfig,
+  Command,
+} from './types';
 
 export function stripArgName(argName: string) {
   return argName.substring(ARGUMENT_PREFIX.length);
@@ -49,7 +58,7 @@ export function isType(positionalArg: PositionalArg): positionalArg is Type {
 }
 
 export function normalizePositionalArgs(
-  positionalArgs: PostionalArgsDescriptor = [],
+  positionalArgs: PositionalArgsDescriptor = [],
   defaultMax: number
 ): PositionalArg[] {
   if (Array.isArray(positionalArgs)) {
@@ -61,10 +70,83 @@ export function normalizePositionalArgs(
   return Array(max).fill(types);
 }
 
-export function requiredNumOfArgs(posArgs: PostionalArgsDescriptor = []) {
+export function minimumPosArgs(posArgs: PositionalArgsDescriptor = []) {
   if (Array.isArray(posArgs)) {
     return posArgs.length;
   }
 
   return posArgs.min || 0;
+}
+
+export function maximumPosArgs(
+  posArgs: PositionalArgsDescriptor = [],
+  defaultMax: number
+) {
+  if (Array.isArray(posArgs)) {
+    return posArgs.length;
+  }
+
+  return posArgs.max || defaultMax;
+}
+
+/*
+  Derive a command and its options from a list of args and a config
+*/
+export function getCommandArgs(
+  args: string[],
+  config: ClimpConfig
+): [Command, string[]] {
+  const {commands} = config;
+  const [firstArg, ...restArgs] = args;
+
+  if (firstArg === undefined) {
+    if (commands[DEFAULT_COMMAND_NAME]) {
+      return [commands[DEFAULT_COMMAND_NAME], []];
+    } else {
+      throw new ClimpError({
+        message: ErrorMessage.NO_ARGS(),
+      });
+    }
+  } else if (commands[firstArg]) {
+    return [commands[firstArg], restArgs];
+  } else if (commands[DEFAULT_COMMAND_NAME]) {
+    return [commands[DEFAULT_COMMAND_NAME], args];
+  } else {
+    throw new ClimpError({
+      message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
+    });
+  }
+}
+
+/*
+  Derive consolidated args/positional args for a given command
+*/
+export function getArgs(
+  command: Command,
+  config: ClimpConfig
+): [Record<string, Arg>, PosArgs] {
+  const {
+    args: cArgs = {},
+    positionalArgs: {
+      optional: cOptPosArgs = [],
+      required: cReqPosArgs = [],
+    } = {},
+  } = command;
+  const {
+    global: {
+      args: gArgs = {},
+      positionalArgs: {
+        optional: gOptPosArgs = [],
+        required: gReqPosArgs = [],
+      } = {},
+    } = {},
+  } = config;
+
+  return [
+    {
+      ...cArgs,
+      ...gArgs,
+    },
+    new PosArgs(gReqPosArgs, cReqPosArgs, gOptPosArgs, cOptPosArgs),
+  ];
 }

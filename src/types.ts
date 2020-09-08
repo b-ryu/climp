@@ -54,16 +54,16 @@ export interface InfiniteArg extends BasicArg {
 }
 
 export interface PositionalArgs {
-  required?: PostionalArgsDescriptor;
-  optional?: PostionalArgsDescriptor;
+  required?: PositionalArgsDescriptor;
+  optional?: PositionalArgsDescriptor;
 }
 
-export type PostionalArgsDescriptor = PositionalArg[] | InfinitePositionalArgs;
+export type PositionalArgsDescriptor = PositionalArg[] | InfinitePositionalArgs;
 
 export type PositionalArg = NamedPositionalArg | Type;
 
 export interface NamedPositionalArg {
-  name?: string | number;
+  name?: string;
   type: Type;
 }
 
