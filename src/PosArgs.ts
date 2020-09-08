@@ -44,10 +44,11 @@ export default class PosArgs {
   findRequiredArgStacks = () => {
     this.reqStackIndices = [];
 
-    if (!this.stacks[0].isEmpty()) {
+    // If minimum is 0, then required stacks are considered optional
+    if (this.stacks[0].minimum !== 0) {
       this.reqStackIndices.push(0);
     }
-    if (!this.stacks[1].isEmpty()) {
+    if (this.stacks[1].minimum !== 0) {
       this.reqStackIndices.push(1);
     }
   };
@@ -78,16 +79,16 @@ export default class PosArgs {
 
       this.moveToAvailableStack(true);
 
-      this.parse(value);
+      return this.parse(value);
     } else {
-      const result = [
+      const result: [string, string | number | boolean] = [
         name === null ? String(this.readIn) : name,
         castedArgValue,
       ];
 
       this.incrementStackIndex();
 
-      return result as [string, string | number | boolean];
+      return result;
     }
   };
 
@@ -105,7 +106,7 @@ export default class PosArgs {
   moveToAvailableStack = (moveFirst = false) => {
     if (moveFirst) {
       this.stackIndex = 0;
-      this.currentStack = Math.max(
+      this.currentStack = Math.min(
         this.currentStack + 1,
         this.stacks.length - 1
       );
@@ -151,10 +152,6 @@ class PosArgStack {
     this.length = Array.isArray(posArgs) ? posArgs.length : posArgs.max || null;
     this.minimum = Array.isArray(posArgs) ? posArgs.length : posArgs.min || 0;
   }
-
-  isEmpty = () => {
-    return this.length === 0;
-  };
 
   reachedLimit = (index: number) => {
     const {length} = this;

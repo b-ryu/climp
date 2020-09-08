@@ -21,15 +21,6 @@ export const ErrorMessage = {
     `Argument "${argName}" expected a minimum of ${min} values, but was given ${given}`,
   NO_ARG_VALUE_PROVIDED: (argName: string) =>
     `Argument "${argName}" expects a value; none was provided`,
-  TOO_MANY_POS_ARGS: (argValue: string, max: number) =>
-    `Extra positional argument "${argValue}" was provided; only at most ${max} expected`,
-  WRONG_POS_ARG_TYPE: (
-    argIndex: number,
-    posArgIndex: number,
-    requiredType: Type,
-    actualValue: string
-  ) =>
-    `Positional argument (arg index: ${argIndex}, pos arg index: ${posArgIndex}) expected a value of type "${requiredType}", but was given "${actualValue}"`,
   MISSING_REQUIRED_ARG: (argName: string) =>
     `Argument "${argName}" is required but was not passed in`,
   NOT_ENOUGH_POS_ARGS: (required: number, actual: number) =>

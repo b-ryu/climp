@@ -6,104 +6,192 @@ function testFunc(config) {
 }
 
 describe('climp', () => {
-  describe('arguments', () => {
-    it('accepts no args when a default command has been defined', () => {
-      const cli = climp({
-        commands: {
-          _: {
-            func: testFunc,
-          },
-        },
-      });
-
-      expect(cli([])).toStrictEqual({});
-    });
-
-    it('calls the default command if the first arg is not a command name', () => {
-      const cli = climp({
-        commands: {
-          _: {
-            func: testFunc,
-            args: {
-              arg1: {type: 'boolean'},
+  describe('argument parsing', () => {
+    describe('default command', () => {
+      it('accepts no args when a default command has been defined', () => {
+        const cli = climp({
+          commands: {
+            _: {
+              func: testFunc,
             },
           },
-        },
+        });
+
+        expect(cli([])).toStrictEqual({});
       });
 
-      expect(cli(['--arg1'])).toStrictEqual({arg1: true});
-    });
-
-    it('accepts commands without any args', () => {
-      const cli = climp({
-        commands: {
-          cmd: {
-            func: testFunc,
-          },
-        },
-      });
-
-      expect(cli(['cmd'])).toStrictEqual({});
-    });
-
-    it('parses named args', () => {
-      const cli = climp({
-        commands: {
-          cmd: {
-            func: testFunc,
-            args: {
-              arg1: {type: 'boolean'},
-              arg2: {type: 'string'},
-              arg3: {type: 'number'},
+      it('calls the default command if the first arg is not a command name', () => {
+        const cli = climp({
+          commands: {
+            _: {
+              func: testFunc,
+              args: {
+                arg1: {type: 'boolean'},
+              },
             },
           },
-        },
-      });
+        });
 
-      expect(
-        cli(['cmd', '--arg1', '--arg3', '34', '--arg2', 'test'])
-      ).toStrictEqual({
-        arg1: true,
-        arg2: 'test',
-        arg3: 34,
+        expect(cli(['--arg1'])).toStrictEqual({arg1: true});
       });
     });
 
-    it('parses positional args', () => {
-      const cli = climp({
-        commands: {
-          cmd: {
-            func: testFunc,
+    describe('named arguments', () => {
+      it('accepts commands without any args', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+            },
+          },
+        });
+
+        expect(cli(['cmd'])).toStrictEqual({});
+      });
+
+      it('parses named args', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              args: {
+                arg1: {type: 'boolean'},
+                arg2: {type: 'string'},
+                arg3: {type: 'number'},
+              },
+            },
+          },
+        });
+
+        expect(
+          cli(['cmd', '--arg1', '--arg3', '34', '--arg2', 'test'])
+        ).toStrictEqual({
+          arg1: true,
+          arg2: 'test',
+          arg3: 34,
+        });
+      });
+    });
+
+    describe('positional args', () => {
+      it('parses positional args', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              positionalArgs: {
+                optional: ['boolean', {name: 'arg1', type: 'string'}],
+                required: {types: 'string', min: 1, max: 1},
+              },
+            },
+          },
+        });
+
+        expect(cli(['cmd', 'true', 'true'])).toStrictEqual({
+          0: 'true',
+          1: true,
+        });
+      });
+
+      it('parses a mix of positional args', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              positionalArgs: {
+                required: {types: 'boolean'},
+                optional: {types: 'boolean'},
+              },
+            },
+          },
+          global: {
             positionalArgs: {
-              optional: ['boolean', {name: 'arg1', type: 'string'}],
-              required: {types: 'string', min: 1, max: 1},
+              required: {types: 'number'},
+              optional: {types: 'number'},
             },
           },
-        },
+        });
+
+        expect(
+          cli(['cmd', '1', 'true', 'false', '2', '3', '4', 'false'])
+        ).toStrictEqual({
+          0: 1,
+          1: true,
+          2: false,
+          3: 2,
+          4: 3,
+          5: 4,
+          6: false,
+        });
+        expect(
+          cli(['cmd', 'true', 'false', '2', '3', '4', 'false'])
+        ).toStrictEqual({
+          0: true,
+          1: false,
+          2: 2,
+          3: 3,
+          4: 4,
+          5: false,
+        });
+        expect(cli(['cmd', '2', '3', '4'])).toStrictEqual({
+          0: 2,
+          1: 3,
+          2: 4,
+        });
+        expect(cli(['cmd', 'true', 'false', 'false'])).toStrictEqual({
+          0: true,
+          1: false,
+          2: false,
+        });
       });
 
-      expect(cli(['cmd', 'true', 'true'])).toStrictEqual({
-        0: 'true',
-        1: true,
+      it('handles positional arg maximums', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              positionalArgs: {
+                required: {types: 'string', max: 2},
+                optional: {types: 'boolean'},
+              },
+            },
+          },
+          global: {
+            positionalArgs: {
+              required: {types: 'number', max: 2},
+              optional: {types: 'number'},
+            },
+          },
+        });
+
+        expect(cli(['cmd', '1', '2', '3', '4', '5'])).toStrictEqual({
+          0: 1,
+          1: 2,
+          2: '3',
+          3: '4',
+          4: 5,
+        });
       });
     });
 
-    it('correctly casts "cast" arg types', () => {
-      const cli = climp({
-        commands: {
-          cmd: {
-            func: testFunc,
-            positionalArgs: {
-              optional: ['cast', {name: 'arg1', type: 'cast'}, 'cast'],
+    describe('type casting', () => {
+      it('correctly casts "cast" arg types', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              positionalArgs: {
+                optional: ['cast', {name: 'arg1', type: 'cast'}, 'cast'],
+              },
             },
           },
-        },
-      });
+        });
 
-      expect(cli(['cmd', 'true', '2', '2test'])).toStrictEqual({
-        0: true,
-        arg1: 2,
-        2: '2test',
+        expect(cli(['cmd', 'true', '2', '2test'])).toStrictEqual({
+          0: true,
+          arg1: 2,
+          2: '2test',
+        });
       });
     });
 
