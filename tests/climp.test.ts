@@ -172,6 +172,38 @@ describe('climp', () => {
           4: 5,
         });
       });
+
+      it('handles a mix of infinite and finite positional args', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              positionalArgs: {
+                required: ['string', 'number'],
+                optional: {types: 'string'},
+              },
+            },
+          },
+          global: {
+            positionalArgs: {
+              required: {types: 'number'},
+              optional: {types: 'boolean'},
+            },
+          },
+        });
+
+        expect(
+          cli(['cmd', '1', '2', 'test', '2', 'true', 'false', 'test'])
+        ).toStrictEqual({
+          0: 1,
+          1: 2,
+          2: 'test',
+          3: 2,
+          4: true,
+          5: false,
+          6: 'test',
+        });
+      });
     });
 
     describe('type casting', () => {
@@ -534,6 +566,52 @@ describe('climp', () => {
         expect(() =>
           cli(['cmd1', 'test1', 'test2', 'test3', 'test4', 'test5'])
         ).toThrow(ErrorMessage.UNEXPECTED_POS_ARG('test5'));
+      });
+
+      it('throws an error if the number of passed values is above the total maximum', () => {
+        const cli = climp({
+          commands: {
+            cmd1: {
+              func: testFunc,
+              positionalArgs: {
+                required: {types: 'cast', max: 1},
+                optional: {types: 'cast', max: 1},
+              },
+            },
+          },
+          global: {
+            positionalArgs: {
+              required: {types: 'cast', max: 1},
+              optional: {types: 'cast', max: 1},
+            },
+          },
+        });
+
+        expect(() =>
+          cli(['cmd1', 'test', 'test', 'test', 'test', 'test'])
+        ).toThrow(ErrorMessage.UNEXPECTED_POS_ARG('test'));
+      });
+
+      it('throws an error if required finite arguments are not passed in', () => {
+        const cli = climp({
+          commands: {
+            cmd1: {
+              func: testFunc,
+              positionalArgs: {
+                required: ['boolean', 'cast'],
+              },
+            },
+          },
+          global: {
+            positionalArgs: {
+              required: ['string', 'number'],
+            },
+          },
+        });
+
+        expect(() => cli(['cmd1', 'test', 'true', 'test'])).toThrow(
+          ErrorMessage.UNEXPECTED_POS_ARG('true')
+        );
       });
 
       it('throws an error if the number of passed values is below the minium', () => {
