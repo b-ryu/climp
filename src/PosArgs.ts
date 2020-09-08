@@ -4,6 +4,9 @@ import {ErrorMessage} from './constants';
 
 import type {PositionalArgsDescriptor, Type} from './types';
 
+/*
+  Object to keep track of positional arg parsing
+*/
 export default class PosArgs {
   readonly minRequired: number;
   readIn: number;
@@ -35,6 +38,10 @@ export default class PosArgs {
 
     this.moveToAvailableStack();
 
+    this.findRequiredArgStacks();
+  }
+
+  findRequiredArgStacks = () => {
     this.reqStackIndices = [];
 
     if (!this.stacks[0].isEmpty()) {
@@ -43,7 +50,7 @@ export default class PosArgs {
     if (!this.stacks[1].isEmpty()) {
       this.reqStackIndices.push(1);
     }
-  }
+  };
 
   currentLimitReached = () => {
     return this.stacks[this.currentStack].reachedLimit(this.stackIndex);
@@ -69,7 +76,7 @@ export default class PosArgs {
         throw new ClimpError({message: ErrorMessage.UNEXPECTED_POS_ARG(value)});
       }
 
-      this.moveToAvailableStack();
+      this.moveToAvailableStack(true);
 
       this.parse(value);
     } else {
@@ -95,7 +102,15 @@ export default class PosArgs {
     this.moveToAvailableStack();
   };
 
-  moveToAvailableStack = () => {
+  moveToAvailableStack = (moveFirst = false) => {
+    if (moveFirst) {
+      this.stackIndex = 0;
+      this.currentStack = Math.max(
+        this.currentStack + 1,
+        this.stacks.length - 1
+      );
+    }
+
     while (
       this.currentLimitReached() &&
       this.currentStack < this.stacks.length - 1

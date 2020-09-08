@@ -6,7 +6,7 @@ function testFunc(config) {
 }
 
 describe('climp', () => {
-  describe.only('arguments', () => {
+  describe('arguments', () => {
     it('accepts no args when a default command has been defined', () => {
       const cli = climp({
         commands: {
@@ -316,7 +316,7 @@ describe('climp', () => {
       });
 
       expect(() => cli(['cmd1', 'test'])).toThrow(
-        ErrorMessage.TOO_MANY_POS_ARGS('test', 0)
+        ErrorMessage.UNEXPECTED_POS_ARG('test')
       );
     });
 
@@ -370,8 +370,8 @@ describe('climp', () => {
         });
 
         expect(() =>
-          cli(['cmd1', '--fArg', 'false', 'test', '23', 'test'])
-        ).toThrow(ErrorMessage.TOO_MANY_POS_ARGS('test', 0));
+          cli(['cmd1', '--fArg', 'false', 'test1', '23', 'test2'])
+        ).toThrow(ErrorMessage.UNEXPECTED_POS_ARG('test2'));
       });
 
       it('throws an error if the wrong type of arg value is passed', () => {
@@ -444,8 +444,8 @@ describe('climp', () => {
         });
 
         expect(() =>
-          cli(['cmd1', 'test', 'test', 'test', 'test', 'test'])
-        ).toThrow(ErrorMessage.TOO_MANY_POS_ARGS('test', 4));
+          cli(['cmd1', 'test1', 'test2', 'test3', 'test4', 'test5'])
+        ).toThrow(ErrorMessage.UNEXPECTED_POS_ARG('test5'));
       });
 
       it('throws an error if the number of passed values is below the minium', () => {
@@ -462,23 +462,6 @@ describe('climp', () => {
 
         expect(() => cli(['cmd1', 'test', 'test', 'test'])).toThrow(
           ErrorMessage.NOT_ENOUGH_POS_ARGS(4, 3)
-        );
-      });
-
-      it('throws an error if the values passed in are of the wrong type', () => {
-        const cli = climp({
-          commands: {
-            cmd1: {
-              func: testFunc,
-              positionalArgs: {
-                required: {types: 'boolean'},
-              },
-            },
-          },
-        });
-
-        expect(() => cli(['cmd1', 'true', 'test', 'false'])).toThrow(
-          ErrorMessage.WRONG_POS_ARG_TYPE(1, 1, 'boolean', 'test')
         );
       });
     });
