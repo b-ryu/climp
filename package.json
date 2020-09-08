@@ -1,11 +1,11 @@
 {
   "name": "climp",
-  "private": true,
   "version": "0.0.1",
   "description": "A tool for building Node CLIs",
   "main": "build/index.js",
   "types": "build/index.d.ts",
-  "author": "Brian Ryu",
+  "author": "Brian Ryu <46533681+b-ryu@users.noreply.github.com>",
+  "repository": "git@github.com:b-ryu/climp.git",
   "license": "MIT",
   "scripts": {
     "build": "tsc",
