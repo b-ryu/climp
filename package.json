@@ -1,6 +1,6 @@
 {
   "name": "climp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A tool for building Node CLIs",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -32,5 +32,8 @@
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     }
-  }
+  },
+  "files": [
+    "./build"
+  ]
 }
