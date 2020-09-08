@@ -31,66 +31,23 @@ import type {
   FiniteArg,
   InfiniteArg,
   Command,
+  Arg,
+  PositionalArg,
 } from './types';
 
 export default function (config: ClimpConfig) {
-  return (cliArgs: string[] = []) => {
+  return (argv: string[] = []) => {
     /*
       Get command
     */
 
-    const [firstArg] = cliArgs;
-    let command: Command;
-    let commandArgs: string[];
-
-    if (firstArg === undefined) {
-      if (config.commands[DEFAULT_COMMAND_NAME]) {
-        command = config.commands[DEFAULT_COMMAND_NAME];
-        commandArgs = [];
-      } else {
-        throw new ClimpError({
-          message: ErrorMessage.NO_ARGS(),
-        });
-      }
-    } else if (config.commands[firstArg]) {
-      command = config.commands[firstArg];
-      [, ...commandArgs] = cliArgs;
-    } else if (config.commands[DEFAULT_COMMAND_NAME]) {
-      command = config.commands[DEFAULT_COMMAND_NAME];
-      commandArgs = cliArgs;
-    } else {
-      throw new ClimpError({
-        message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
-      });
-    }
+    const [command, commandArgs] = getCommandArgs(argv, config);
 
     /*
-      Get arg descriptors
+      Get args
     */
 
-    const args = {
-      ...(command.args || {}),
-      ...(config?.global?.args || {}),
-    };
-
-    const posArgs = [
-      ...normalizePositionalArgs(
-        config?.global?.positionalArgs?.required,
-        cliArgs.length
-      ),
-      ...normalizePositionalArgs(
-        command.positionalArgs?.required,
-        cliArgs.length
-      ),
-      ...normalizePositionalArgs(
-        config?.global?.positionalArgs?.optional,
-        cliArgs.length
-      ),
-      ...normalizePositionalArgs(
-        command.positionalArgs?.optional,
-        cliArgs.length
-      ),
-    ];
+    const [args, posArgs] = getArgs(command, config, argv.length);
 
     /*
       Parse args
@@ -175,7 +132,7 @@ export default function (config: ClimpConfig) {
             const {
               types: argType,
               min = 0,
-              max = cliArgs.length,
+              max = argv.length,
             } = arg as InfiniteArg;
 
             const argValues = [];
@@ -335,4 +292,66 @@ export default function (config: ClimpConfig) {
 
     return command.func(argObj);
   };
+}
+
+function getCommandArgs(
+  args: string[],
+  config: ClimpConfig
+): [Command, string[]] {
+  const {commands} = config;
+  const [firstArg, ...restArgs] = args;
+
+  if (firstArg === undefined) {
+    if (commands[DEFAULT_COMMAND_NAME]) {
+      return [commands[DEFAULT_COMMAND_NAME], []];
+    } else {
+      throw new ClimpError({
+        message: ErrorMessage.NO_ARGS(),
+      });
+    }
+  } else if (commands[firstArg]) {
+    return [commands[firstArg], restArgs];
+  } else if (commands[DEFAULT_COMMAND_NAME]) {
+    return [commands[DEFAULT_COMMAND_NAME], args];
+  } else {
+    throw new ClimpError({
+      message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
+    });
+  }
+}
+
+function getArgs(
+  command: Command,
+  config: ClimpConfig,
+  argCount: number
+): [Record<string, Arg>, PositionalArg[]] {
+  const {
+    args: cArgs = {},
+    positionalArgs: {
+      optional: cOptPosArgs = [],
+      required: cReqPosArgs = [],
+    } = {},
+  } = command;
+  const {
+    global: {
+      args: gArgs = {},
+      positionalArgs: {
+        optional: gOptPosArgs = [],
+        required: gReqPosArgs = [],
+      } = {},
+    } = {},
+  } = config;
+
+  return [
+    {
+      ...cArgs,
+      ...gArgs,
+    },
+    [
+      ...normalizePositionalArgs(gReqPosArgs, argCount),
+      ...normalizePositionalArgs(cReqPosArgs, argCount),
+      ...normalizePositionalArgs(gOptPosArgs, argCount),
+      ...normalizePositionalArgs(cOptPosArgs, argCount),
+    ],
+  ];
 }
