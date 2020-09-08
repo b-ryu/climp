@@ -193,6 +193,30 @@ describe('climp', () => {
       });
     });
 
+    it('stops parsing infinite args chains when args do not meet conditions', () => {
+      const cli = climp({
+        commands: {
+          cmd: {
+            func: testFunc,
+            args: {
+              cArg: {types: 'boolean'},
+            },
+          },
+        },
+        global: {
+          positionalArgs: {
+            required: {types: 'cast'},
+          },
+        },
+      });
+
+      expect(cli(['cmd', '--cArg', 'true', '3', 'false'])).toStrictEqual({
+        cArg: [true],
+        0: 3,
+        1: false,
+      });
+    });
+
     it('parses global args first', () => {
       const cli = climp({
         commands: {
@@ -403,23 +427,6 @@ describe('climp', () => {
         expect(() =>
           cli(['cmd1', '--arg1', 'test', 'test', 'test', 'test', 'test'])
         ).toThrow(ErrorMessage.NOT_ENOUGH_ARG_VALUES('--arg1', 7, 5));
-      });
-
-      it('throws an error if the values passed in are of the wrong type', () => {
-        const cli = climp({
-          commands: {
-            cmd1: {
-              func: testFunc,
-              args: {
-                arg1: {types: 'boolean'},
-              },
-            },
-          },
-        });
-
-        expect(() =>
-          cli(['cmd1', '--arg1', 'true', 'false', 'true', '1', 'false'])
-        ).toThrow(ErrorMessage.WRONG_ARG_TYPE('--arg1', 'boolean', '1'));
       });
     });
 

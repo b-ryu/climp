@@ -37,17 +37,19 @@ import type {
 
 export default function (config: ClimpConfig) {
   return (argv: string[] = []) => {
+    const totalArgCount = argv.length;
+
     /*
       Get command
     */
 
-    const [command, commandArgs] = getCommandArgs(argv, config);
+    const [command, parseArgs] = getCommandArgs(argv, config);
 
     /*
       Get args
     */
 
-    const [args, posArgs] = getArgs(command, config, argv.length);
+    const [args, posArgs] = getArgs(command, config, totalArgCount);
 
     /*
       Parse args
@@ -55,13 +57,16 @@ export default function (config: ClimpConfig) {
 
     const argObj = {};
 
-    let posArgIndex = 0;
-    let index = 0;
+    let parseIndex = 0; // keep track of how many args we've parsed
+    let posArgIndex = 0; // keep track of how many pos args we've parsed
 
-    while (index < commandArgs.length) {
-      if (isArgName(commandArgs[index])) {
-        const argName = commandArgs[index];
+    while (parseIndex < parseArgs.length) {
+      const parseArg = parseArgs[parseIndex];
+
+      if (isArgName(parseArg)) {
+        const argName = parseArg;
         const strippedArgName = stripArgName(argName);
+
         const arg = args[strippedArgName];
 
         if (arg == undefined) {
@@ -85,42 +90,47 @@ export default function (config: ClimpConfig) {
               Finite arg
             */
 
-            const argTypes = (arg as FiniteArg).types;
-            const argValues = Array(argTypes.length);
+            const {types} = arg as FiniteArg;
 
-            argTypes.forEach((type, argIndex) => {
-              if (index + argIndex >= commandArgs.length - 1) {
+            const values = [];
+
+            while (values.length < types.length) {
+              const valIndex = values.length;
+              const valType = types[valIndex];
+              const valParseIndex = parseIndex + valIndex + 1;
+
+              if (valParseIndex >= parseArgs.length) {
                 throw new ClimpError({
                   message: ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES(
                     argName,
-                    argTypes.length,
-                    argIndex
+                    types.length,
+                    valIndex
                   ),
                 });
               }
 
-              const argValue = commandArgs[index + argIndex + 1];
+              const value = parseArgs[valParseIndex];
 
-              if (isArgName(argValue)) {
+              if (isArgName(value)) {
                 throw new ClimpError({
-                  message: ErrorMessage.ARG_NAME_VALUE(argValue, argName),
+                  message: ErrorMessage.ARG_NAME_VALUE(value, argName),
                 });
               }
 
-              const castedArgValue = castArgValue(argValue, type);
+              const castedArgValue = castArgValue(value, valType);
 
               if (castedArgValue === null) {
                 throw new ClimpError({
-                  message: ErrorMessage.WRONG_ARG_TYPE(argName, type, argValue),
+                  message: ErrorMessage.WRONG_ARG_TYPE(argName, valType, value),
                 });
               }
 
-              argValues[argIndex] = castedArgValue;
-            });
+              values.push(castedArgValue);
+            }
 
-            argObj[strippedArgName] = argValues;
+            argObj[strippedArgName] = values;
 
-            index += argTypes.length;
+            parseIndex += values.length;
 
             break;
           }
@@ -130,54 +140,50 @@ export default function (config: ClimpConfig) {
             */
 
             const {
-              types: argType,
+              types: type,
               min = 0,
-              max = argv.length,
+              max = totalArgCount,
             } = arg as InfiniteArg;
 
-            const argValues = [];
+            const values = [];
 
-            while (argValues.length < max) {
-              const argIndex = argValues.length;
+            while (values.length < max) {
+              const valIndex = values.length;
+              const valType = type;
+              const valParseIndex = parseIndex + valIndex + 1;
 
-              if (index + argIndex >= commandArgs.length - 1) {
+              if (valParseIndex >= parseArgs.length) {
                 break;
               }
 
-              const argValue = commandArgs[index + argIndex + 1];
+              const value = parseArgs[valParseIndex];
 
-              if (isArgName(argValue)) {
+              if (isArgName(value)) {
                 break;
               }
 
-              const castedArgValue = castArgValue(argValue, argType);
+              const castedArgValue = castArgValue(value, valType);
 
               if (castedArgValue === null) {
-                throw new ClimpError({
-                  message: ErrorMessage.WRONG_ARG_TYPE(
-                    argName,
-                    argType,
-                    argValue
-                  ),
-                });
+                break;
               }
 
-              argValues.push(castedArgValue);
+              values.push(castedArgValue);
             }
 
-            if (argValues.length < min) {
+            if (values.length < min) {
               throw new ClimpError({
                 message: ErrorMessage.NOT_ENOUGH_ARG_VALUES(
                   argName,
                   min,
-                  argValues.length
+                  values.length
                 ),
               });
             }
 
-            argObj[strippedArgName] = argValues;
+            argObj[strippedArgName] = values;
 
-            index += argValues.length;
+            parseIndex += values.length;
 
             break;
           }
@@ -186,36 +192,34 @@ export default function (config: ClimpConfig) {
               Singular arg
             */
 
-            if (index >= commandArgs.length - 1) {
+            const valParseIndex = parseIndex + 1;
+
+            if (valParseIndex >= parseArgs.length) {
               throw new ClimpError({
                 message: ErrorMessage.NO_ARG_VALUE_PROVIDED(argName),
               });
             }
 
-            const argValue = commandArgs[index + 1];
+            const value = parseArgs[valParseIndex];
 
-            if (isArgName(argValue)) {
+            if (isArgName(value)) {
               throw new ClimpError({
-                message: ErrorMessage.ARG_NAME_VALUE(argValue, argName),
+                message: ErrorMessage.ARG_NAME_VALUE(value, argName),
               });
             }
 
-            const argValueType = (arg as SingularArg).type;
-            const castedArgValue = castArgValue(argValue, argValueType);
+            const {type} = arg as SingularArg;
+            const castedArgValue = castArgValue(value, type);
 
             if (castedArgValue === null) {
               throw new ClimpError({
-                message: ErrorMessage.WRONG_ARG_TYPE(
-                  argName,
-                  argValueType,
-                  argValue
-                ),
+                message: ErrorMessage.WRONG_ARG_TYPE(argName, type, value),
               });
             }
 
             argObj[strippedArgName] = castedArgValue;
 
-            ++index;
+            ++parseIndex;
 
             break;
           }
@@ -225,30 +229,29 @@ export default function (config: ClimpConfig) {
           Positional arg
         */
 
-        const argValue = commandArgs[index];
+        const value = parseArg;
 
         if (posArgIndex >= posArgs.length) {
           throw new ClimpError({
-            message: ErrorMessage.TOO_MANY_POS_ARGS(argValue, posArgs.length),
+            message: ErrorMessage.TOO_MANY_POS_ARGS(value, posArgs.length),
           });
         }
 
         const posArg = posArgs[posArgIndex];
-        const {name: posArgName = posArgIndex, type: argValueType} = isType(
-          posArg
-        )
+        const {name: posArgName = posArgIndex, type} = isType(posArg)
           ? {type: posArg}
           : posArg;
 
-        const castedArgValue = castArgValue(argValue, argValueType);
+        const castedArgValue = castArgValue(value, type);
 
         if (castedArgValue === null) {
+          // TODO improve parsing: what if pos args are optional
           throw new ClimpError({
             message: ErrorMessage.WRONG_POS_ARG_TYPE(
-              index,
+              parseIndex,
               posArgIndex,
-              argValueType,
-              argValue
+              type,
+              value
             ),
           });
         }
@@ -258,7 +261,7 @@ export default function (config: ClimpConfig) {
         ++posArgIndex;
       }
 
-      ++index;
+      ++parseIndex;
     }
 
     /*
@@ -294,6 +297,9 @@ export default function (config: ClimpConfig) {
   };
 }
 
+/*
+  Derive a command and its options from a list of args and a config
+*/
 function getCommandArgs(
   args: string[],
   config: ClimpConfig
@@ -320,10 +326,13 @@ function getCommandArgs(
   }
 }
 
+/*
+  Derive consolidated args/positional args for a given command
+*/
 function getArgs(
   command: Command,
   config: ClimpConfig,
-  argCount: number
+  maxArgCount: number
 ): [Record<string, Arg>, PositionalArg[]] {
   const {
     args: cArgs = {},
@@ -348,10 +357,11 @@ function getArgs(
       ...gArgs,
     },
     [
-      ...normalizePositionalArgs(gReqPosArgs, argCount),
-      ...normalizePositionalArgs(cReqPosArgs, argCount),
-      ...normalizePositionalArgs(gOptPosArgs, argCount),
-      ...normalizePositionalArgs(cOptPosArgs, argCount),
+      // TODO improve this
+      ...normalizePositionalArgs(gReqPosArgs, maxArgCount),
+      ...normalizePositionalArgs(cReqPosArgs, maxArgCount),
+      ...normalizePositionalArgs(gOptPosArgs, maxArgCount),
+      ...normalizePositionalArgs(cOptPosArgs, maxArgCount),
     ],
   ];
 }
