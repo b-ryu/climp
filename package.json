@@ -6,6 +6,9 @@
   "types": "build/index.d.ts",
   "author": "Brian Ryu <46533681+b-ryu@users.noreply.github.com>",
   "repository": "git@github.com:b-ryu/climp.git",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "license": "MIT",
   "scripts": {
     "build": "tsc",
