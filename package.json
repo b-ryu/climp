@@ -5,7 +5,11 @@
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "author": "Brian Ryu <46533681+b-ryu@users.noreply.github.com>",
-  "repository": "git@github.com:b-ryu/climp.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/b-ryu/climp.git"
+  },
+  "homepage": "https://github.com/b-ryu/climp#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
