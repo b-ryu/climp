@@ -65,15 +65,15 @@ interface Config {
 
 ### `Commands`
 
-_TODO write docs lol_
+_TODO write docs_
 
 ### `Args`
 
-_TODO write docs lol_
+_TODO write docs_
 
 ### `PositionalArgs`
 
-_TODO write docs lol_
+_TODO write docs_
 
 ## Errors
 
@@ -102,34 +102,3 @@ try {
 ```
 
 In the future I may plan on adding an error-handler config option to help make this a little nicer-looking.
-
-## 🚧 TODO
-
-**Primary features**
-
-- [x] Support infinite positional args
-- [x] Support no-args case
-- [ ] Support aliases
-  - [ ] Support catch-all function for transforming command names
-- [ ] Preprocessing/optimizations
-- [ ] Support default types
-
-**Secondary features/backlog**
-
-- [ ] Built-in/generated `--help` function
-- [ ] Greater configurability in general
-- [ ] Improved errors
-  - [ ] Pass in useful info in error object
-  - [ ] More specialized error types
-  - [ ] More extensive type errors
-- [ ] More specific/useful TS types
-- [ ] Config/arg validators
-- [ ] Error-handling config
-
-**Project items**
-
-- [ ] Tests
-- [ ] Flesh out docs
-- [ ] Publish
-- [ ] Publish script
-- [ ] Set up GH actions for automated testing
