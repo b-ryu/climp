@@ -1,8 +1,7 @@
 /*
   TODO
-  
   - support aliasing
-  - preprocess/validate config (i.e. validate arg names, argTypes, generate defaults, normalizePositionalArgs, no duplicate names)
+  - preprocess/validate config (i.e. validate arg names, argTypes, no duplicate names)
   - make arg types optional, use defaults (e.g. "cast" and SingularArg)
   - preprocess cliArgs (i.e. stripArgName, isArgName)
   - extract code to trim down this file's line count
@@ -11,6 +10,7 @@
   - make this prefix configurable
   - make string arg validation configurable (i.e. "strict" arg values)
   - emit warnings
+  - InfinitePositionalArgs types: ignore/omit minimum on optional
 */
 
 import ClimpError from './errors';
@@ -21,27 +21,52 @@ import {
   castArgValue,
   isType,
   normalizePositionalArgs,
-  getMinPosArgs,
+  requiredNumOfArgs,
 } from './util';
+import {DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
 
-import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
+import type {
+  ClimpConfig,
+  SingularArg,
+  FiniteArg,
+  InfiniteArg,
+  Command,
+} from './types';
 
 export default function (config: ClimpConfig) {
   return (cliArgs: string[] = []) => {
-    const [commandName, ...commandArgs] = cliArgs;
-    const command = config.commands[commandName] || config.commands['_'];
+    /*
+      Get command
+    */
 
-    if (command == undefined) {
-      if (commandName === undefined) {
-        throw new ClimpError({
-          message: `No arguments provided, and default command does not exist`,
-        });
+    const [firstArg] = cliArgs;
+    let command: Command;
+    let commandArgs: string[];
+
+    if (firstArg === undefined) {
+      if (config.commands[DEFAULT_COMMAND_NAME]) {
+        command = config.commands[DEFAULT_COMMAND_NAME];
+        commandArgs = [];
       } else {
         throw new ClimpError({
-          message: `${commandName} is not a recognized command`,
+          message: ErrorMessage.NO_ARGS(),
         });
       }
+    } else if (config.commands[firstArg]) {
+      command = config.commands[firstArg];
+      [, ...commandArgs] = cliArgs;
+    } else if (config.commands[DEFAULT_COMMAND_NAME]) {
+      command = config.commands[DEFAULT_COMMAND_NAME];
+      commandArgs = cliArgs;
+    } else {
+      throw new ClimpError({
+        message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
+      });
     }
+
+    /*
+      Get arg descriptors
+    */
 
     const args = {
       ...(command.args || {}),
@@ -66,10 +91,14 @@ export default function (config: ClimpConfig) {
         cliArgs.length
       ),
     ];
-    let posArgIndex = 0;
+
+    /*
+      Parse args
+    */
 
     const argObj = {};
 
+    let posArgIndex = 0;
     let index = 0;
 
     while (index < commandArgs.length) {
@@ -80,24 +109,36 @@ export default function (config: ClimpConfig) {
 
         if (arg == undefined) {
           throw new ClimpError({
-            message: `Argument "${argName}" is not recognized`,
+            message: ErrorMessage.UNRECOGNIZED_ARG(argName),
           });
         }
 
         switch (argType(arg)) {
           case 'boolean': {
+            /*
+              Boolean arg
+            */
+
             argObj[strippedArgName] = true;
 
             break;
           }
           case 'finite': {
+            /*
+              Finite arg
+            */
+
             const argTypes = (arg as FiniteArg).types;
-            const argValues = [];
+            const argValues = Array(argTypes.length);
 
             argTypes.forEach((type, argIndex) => {
               if (index + argIndex >= commandArgs.length - 1) {
                 throw new ClimpError({
-                  message: `Argument "${argName}" expects ${argTypes.length} values; ${argIndex} provided`,
+                  message: ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES(
+                    argName,
+                    argTypes.length,
+                    argIndex
+                  ),
                 });
               }
 
@@ -105,7 +146,7 @@ export default function (config: ClimpConfig) {
 
               if (isArgName(argValue)) {
                 throw new ClimpError({
-                  message: `You cannot pass "${argValue}" to argument "${argName}"; the "--" prefix is reserved for CLI options`,
+                  message: ErrorMessage.ARG_NAME_VALUE(argValue, argName),
                 });
               }
 
@@ -113,11 +154,11 @@ export default function (config: ClimpConfig) {
 
               if (castedArgValue === null) {
                 throw new ClimpError({
-                  message: `Argument "${argName}" expected a value of type "${type}", but was given "${argValue}"`,
+                  message: ErrorMessage.WRONG_ARG_TYPE(argName, type, argValue),
                 });
               }
 
-              argValues.push(castedArgValue);
+              argValues[argIndex] = castedArgValue;
             });
 
             argObj[strippedArgName] = argValues;
@@ -127,6 +168,10 @@ export default function (config: ClimpConfig) {
             break;
           }
           case 'infinite': {
+            /*
+              Infinite arg
+            */
+
             const {
               types: argType,
               min = 0,
@@ -152,7 +197,11 @@ export default function (config: ClimpConfig) {
 
               if (castedArgValue === null) {
                 throw new ClimpError({
-                  message: `Argument "${argName}" expected a value of type "${argType}", but was given "${argValue}"`,
+                  message: ErrorMessage.WRONG_ARG_TYPE(
+                    argName,
+                    argType,
+                    argValue
+                  ),
                 });
               }
 
@@ -161,7 +210,11 @@ export default function (config: ClimpConfig) {
 
             if (argValues.length < min) {
               throw new ClimpError({
-                message: `Argument "${argName}" expected a minimum of ${min} values, but was given ${argValues.length}`,
+                message: ErrorMessage.NOT_ENOUGH_ARG_VALUES(
+                  argName,
+                  min,
+                  argValues.length
+                ),
               });
             }
 
@@ -172,9 +225,13 @@ export default function (config: ClimpConfig) {
             break;
           }
           case 'singular': {
+            /*
+              Singular arg
+            */
+
             if (index >= commandArgs.length - 1) {
               throw new ClimpError({
-                message: `Argument "${argName}" expects a value; none was provided`,
+                message: ErrorMessage.NO_ARG_VALUE_PROVIDED(argName),
               });
             }
 
@@ -182,7 +239,7 @@ export default function (config: ClimpConfig) {
 
             if (isArgName(argValue)) {
               throw new ClimpError({
-                message: `You cannot pass "${argValue}" to argument "${argName}"; the "--" prefix is reserved for CLI options`,
+                message: ErrorMessage.ARG_NAME_VALUE(argValue, argName),
               });
             }
 
@@ -191,7 +248,11 @@ export default function (config: ClimpConfig) {
 
             if (castedArgValue === null) {
               throw new ClimpError({
-                message: `Argument "${argName}" expected a value of type "${argValueType}", but was given "${argValue}"`,
+                message: ErrorMessage.WRONG_ARG_TYPE(
+                  argName,
+                  argValueType,
+                  argValue
+                ),
               });
             }
 
@@ -203,35 +264,49 @@ export default function (config: ClimpConfig) {
           }
         }
       } else {
+        /*
+          Positional arg
+        */
+
         const argValue = commandArgs[index];
 
         if (posArgIndex >= posArgs.length) {
           throw new ClimpError({
-            message: `Extra positional argument "${argValue}" was provided; only at most ${posArgs.length} expected`,
+            message: ErrorMessage.TOO_MANY_POS_ARGS(argValue, posArgs.length),
           });
         }
 
         const posArg = posArgs[posArgIndex];
-        const {
-          name: strippedArgName = posArgIndex,
-          type: argValueType,
-        } = isType(posArg) ? {type: posArg} : posArg;
+        const {name: posArgName = posArgIndex, type: argValueType} = isType(
+          posArg
+        )
+          ? {type: posArg}
+          : posArg;
 
         const castedArgValue = castArgValue(argValue, argValueType);
 
         if (castedArgValue === null) {
           throw new ClimpError({
-            message: `Positional argument ("${strippedArgName}", at index ${index}:${posArgIndex}) expected a value of type "${argValueType}", but was given "${argValue}"`,
+            message: ErrorMessage.WRONG_POS_ARG_TYPE(
+              index,
+              posArgIndex,
+              argValueType,
+              argValue
+            ),
           });
         }
 
-        argObj[strippedArgName] = castedArgValue;
+        argObj[posArgName] = castedArgValue;
 
         ++posArgIndex;
       }
 
       ++index;
     }
+
+    /*
+      Check for missing required args
+    */
 
     Object.keys(args).forEach((argName) => {
       if (
@@ -240,17 +315,21 @@ export default function (config: ClimpConfig) {
         argObj[argName] == undefined
       ) {
         throw new ClimpError({
-          message: `Argument "${argName}" is required but was not passed in`,
+          message: ErrorMessage.MISSING_REQUIRED_ARG(argName),
         });
       }
     });
 
     const totalRequiredPosArgs =
-      getMinPosArgs(config?.global?.positionalArgs?.required) +
-      getMinPosArgs(command.positionalArgs?.required);
-    if (posArgIndex < totalRequiredPosArgs - 1) {
+      requiredNumOfArgs(config?.global?.positionalArgs?.required) +
+      requiredNumOfArgs(command.positionalArgs?.required);
+
+    if (posArgIndex < totalRequiredPosArgs) {
       throw new ClimpError({
-        message: `${totalRequiredPosArgs} positional arguments were required but only ${posArgIndex} were passed in`,
+        message: ErrorMessage.NOT_ENOUGH_POS_ARGS(
+          totalRequiredPosArgs,
+          posArgIndex
+        ),
       });
     }
 

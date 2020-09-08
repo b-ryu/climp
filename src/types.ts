@@ -8,31 +8,33 @@ export interface ClimpConfig {
 }
 
 // Commands
-type Commands = Record<string, Command>;
+export type Commands = Record<string, Command>;
 
-interface Command {
+export interface Command {
   func: CommandFunction;
   args?: Args;
   positionalArgs?: PositionalArgs;
 }
 
-type CommandFunction = (args: Record<string, string | number | boolean>) => any;
+export type CommandFunction = (
+  args: Record<string, string | number | boolean>
+) => any;
 
 // Types
 export type Type = 'boolean' | 'string' | 'number' | 'cast';
 
 // Args
-type Args = Record<string, Arg>;
+export type Args = Record<string, Arg>;
 
 export type Arg = BoolArg | SingularArg | FiniteArg | InfiniteArg;
 
-interface BasicArg {
+export interface BasicArg {
   required?: boolean;
 }
 
 // Note that boolean args (or "flags") can't be "required" in the usual sense;
 // including it counts as "true", omitting it counts as "false"
-interface BoolArg extends BasicArg {
+export interface BoolArg extends BasicArg {
   type: 'boolean';
   required?: false;
 }
@@ -51,7 +53,7 @@ export interface InfiniteArg extends BasicArg {
   max?: number;
 }
 
-interface PositionalArgs {
+export interface PositionalArgs {
   required?: PostionalArgsDescriptor;
   optional?: PostionalArgsDescriptor;
 }
@@ -60,12 +62,12 @@ export type PostionalArgsDescriptor = PositionalArg[] | InfinitePositionalArgs;
 
 export type PositionalArg = NamedPositionalArg | Type;
 
-interface NamedPositionalArg {
+export interface NamedPositionalArg {
   name?: string | number;
   type: Type;
 }
 
-interface InfinitePositionalArgs {
+export interface InfinitePositionalArgs {
   types: Type;
   min?: number;
   max?: number;

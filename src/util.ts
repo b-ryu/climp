@@ -1,11 +1,13 @@
+import {ARGUMENT_PREFIX} from './constants';
+
 import type {Arg, Type, PositionalArg, PostionalArgsDescriptor} from './types';
 
 export function stripArgName(argName: string) {
-  return argName.substring(2);
+  return argName.substring(ARGUMENT_PREFIX.length);
 }
 
 export function isArgName(arg: string) {
-  return arg.startsWith('--');
+  return arg.startsWith(ARGUMENT_PREFIX);
 }
 
 export function argType(arg: Arg) {
@@ -59,10 +61,10 @@ export function normalizePositionalArgs(
   return Array(max).fill(types);
 }
 
-export function getMinPosArgs(positionalArgs: PostionalArgsDescriptor = []) {
-  if (Array.isArray(positionalArgs)) {
-    return positionalArgs.length;
+export function requiredNumOfArgs(posArgs: PostionalArgsDescriptor = []) {
+  if (Array.isArray(posArgs)) {
+    return posArgs.length;
   }
 
-  return positionalArgs.min || 0;
+  return posArgs.min || 0;
 }
