@@ -150,3 +150,61 @@ export function getArgs(
     new PosArgs(gReqPosArgs, cReqPosArgs, gOptPosArgs, cOptPosArgs),
   ];
 }
+
+export function parseArgs(
+  argName: string,
+  parseIndex: number,
+  commandArgs: string[],
+  types: Type[],
+  strict = true
+) {
+  const values = [];
+
+  while (values.length < types.length) {
+    const valIndex = values.length;
+    const valType = types[valIndex];
+    const valParseIndex = parseIndex + valIndex + 1;
+
+    if (valParseIndex >= commandArgs.length) {
+      if (strict) {
+        throw new ClimpError({
+          message: ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES(
+            argName,
+            types.length,
+            valIndex
+          ),
+        });
+      } else {
+        break;
+      }
+    }
+
+    const value = commandArgs[valParseIndex];
+
+    if (isArgName(value)) {
+      if (strict) {
+        throw new ClimpError({
+          message: ErrorMessage.ARG_NAME_VALUE(value, argName),
+        });
+      } else {
+        break;
+      }
+    }
+
+    const castedArgValue = castArgValue(value, valType);
+
+    if (castedArgValue === null) {
+      if (strict) {
+        throw new ClimpError({
+          message: ErrorMessage.WRONG_ARG_TYPE(argName, valType, value),
+        });
+      } else {
+        break;
+      }
+    }
+
+    values.push(castedArgValue);
+  }
+
+  return values;
+}

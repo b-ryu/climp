@@ -14,13 +14,11 @@ export const ErrorMessage = {
     argName: string,
     required: number,
     given: number
-  ) => `Argument "${argName}" expects ${required} values; ${given} provided`,
+  ) => `Argument "${argName}" expects ${required} value(s); ${given} provided`,
   WRONG_ARG_TYPE: (argName: string, requiredType: Type, actualValue: string) =>
     `Argument "${argName}" expected a value of type "${requiredType}", but was given "${actualValue}"`,
   NOT_ENOUGH_ARG_VALUES: (argName: string, min: number, given: number) =>
-    `Argument "${argName}" expected a minimum of ${min} values, but was given ${given}`,
-  NO_ARG_VALUE_PROVIDED: (argName: string) =>
-    `Argument "${argName}" expects a value; none was provided`,
+    `Argument "${argName}" expected a minimum of ${min} value(s), but was given ${given}`,
   MISSING_REQUIRED_ARG: (argName: string) =>
     `Argument "${argName}" is required but was not passed in`,
   NOT_ENOUGH_POS_ARGS: (required: number, actual: number) =>

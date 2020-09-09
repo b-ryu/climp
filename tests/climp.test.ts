@@ -454,7 +454,7 @@ describe('climp', () => {
         });
 
         expect(() => cli(['cmd1', '--fArg'])).toThrow(
-          ErrorMessage.NO_ARG_VALUE_PROVIDED('--fArg')
+          ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES('--fArg', 1, 0)
         );
       });
     });
