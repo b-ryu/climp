@@ -1,7 +1,7 @@
 import {ARGUMENT_PREFIX, DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
 import PosArgs from './PosArgs';
-
 import ClimpError from './errors';
+
 import type {
   Arg,
   Type,
