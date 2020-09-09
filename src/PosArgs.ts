@@ -44,6 +44,7 @@ export default class PosArgs {
   findRequiredArgStacks = () => {
     this.reqStackIndices = [];
 
+    // Indices 0 and 1 hold the "required" pos args
     // If minimum is 0, then required stacks are considered optional
     if (this.stacks[0].minimum !== 0) {
       this.reqStackIndices.push(0);
@@ -135,7 +136,6 @@ export default class PosArgs {
 
     return (
       this.onOptionalStack() ||
-      reqStackIndices.length === 0 ||
       (currentStack === Math.max(...reqStackIndices) &&
         stackIndex >= stack.minimum)
     );
