@@ -16,7 +16,8 @@ export interface Command {
   positionalArgs?: PositionalArgs;
 }
 
-export type ArgObj = Record<string, string | number | boolean>;
+export type ArgValue = string | number | boolean;
+export type ArgObj = Record<string, ArgValue | ArgValue[]>;
 
 export type CommandFunction = (args: ArgObj) => any;
 

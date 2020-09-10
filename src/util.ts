@@ -9,6 +9,7 @@ import type {
   PositionalArgsDescriptor,
   ClimpConfig,
   Command,
+  ArgValue,
 } from './types';
 
 export function stripArgName(argName: string) {
@@ -157,8 +158,8 @@ export function parseArgs(
   commandArgs: string[],
   types: Type[],
   strict = true
-) {
-  const values = [];
+): ArgValue[] {
+  const values: ArgValue[] = [];
 
   while (values.length < types.length) {
     const valIndex = values.length;

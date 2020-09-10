@@ -71,6 +71,27 @@ describe('climp', () => {
           arg3: 34,
         });
       });
+
+      it('parses named args with multiple values', () => {
+        const cli = climp({
+          commands: {
+            cmd: {
+              func: testFunc,
+              args: {
+                arg1: {types: ['boolean', 'string', 'number']},
+                arg2: {type: 'string'},
+              },
+            },
+          },
+        });
+
+        expect(
+          cli(['cmd', '--arg1', 'false', 'test', '2', '--arg2', 'test'])
+        ).toStrictEqual({
+          arg1: [false, 'test', 2],
+          arg2: 'test',
+        });
+      });
     });
 
     describe('positional args', () => {
@@ -224,6 +245,28 @@ describe('climp', () => {
           arg1: 2,
           2: '2test',
         });
+      });
+    });
+
+    it('parses a mix of named and positional args with undefinite length', () => {
+      const cli = climp({
+        commands: {
+          cmd: {
+            func: testFunc,
+            args: {
+              arg1: {types: 'number'},
+            },
+            positionalArgs: {
+              optional: ['string', 'number'],
+            },
+          },
+        },
+      });
+
+      expect(cli(['cmd', '--arg1', '1', '2', '3', 'test', '2'])).toStrictEqual({
+        arg1: [1, 2, 3],
+        0: 'test',
+        1: 2,
       });
     });
 
@@ -416,30 +459,6 @@ describe('climp', () => {
       );
     });
 
-    it('throws an error if an arg is not recognized', () => {
-      const cli = climp({
-        commands: {
-          cmd1: {func: testFunc},
-        },
-      });
-
-      expect(() => cli(['cmd1', '--test'])).toThrow(
-        ErrorMessage.UNRECOGNIZED_ARG('--test')
-      );
-    });
-
-    it('throws an error if too many positional args are passed', () => {
-      const cli = climp({
-        commands: {
-          cmd1: {func: testFunc},
-        },
-      });
-
-      expect(() => cli(['cmd1', 'test'])).toThrow(
-        ErrorMessage.UNEXPECTED_POS_ARG('test')
-      );
-    });
-
     describe('singular args', () => {
       it('throws an error if a value is not provided', () => {
         const cli = climp({
@@ -455,6 +474,37 @@ describe('climp', () => {
 
         expect(() => cli(['cmd1', '--fArg'])).toThrow(
           ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES('--fArg', 1, 0)
+        );
+      });
+    });
+
+    describe('named args', () => {
+      it('throws an error if a required arg is not passed in', () => {
+        const cli = climp({
+          commands: {
+            cmd1: {
+              func: testFunc,
+              args: {
+                arg1: {type: 'string', required: true},
+              },
+            },
+          },
+        });
+
+        expect(() => cli(['cmd1'])).toThrow(
+          ErrorMessage.MISSING_REQUIRED_ARG('arg1')
+        );
+      });
+
+      it('throws an error if an arg is not recognized', () => {
+        const cli = climp({
+          commands: {
+            cmd1: {func: testFunc},
+          },
+        });
+
+        expect(() => cli(['cmd1', '--test'])).toThrow(
+          ErrorMessage.UNRECOGNIZED_ARG('--test')
         );
       });
     });
@@ -630,23 +680,6 @@ describe('climp', () => {
           ErrorMessage.NOT_ENOUGH_POS_ARGS(4, 3)
         );
       });
-    });
-
-    it('throws an error if a required arg is not passed in', () => {
-      const cli = climp({
-        commands: {
-          cmd1: {
-            func: testFunc,
-            args: {
-              arg1: {type: 'string', required: true},
-            },
-          },
-        },
-      });
-
-      expect(() => cli(['cmd1'])).toThrow(
-        ErrorMessage.MISSING_REQUIRED_ARG('arg1')
-      );
     });
   });
 });

@@ -18,7 +18,13 @@ import {
 } from './util';
 import {ErrorMessage} from './constants';
 
-import type {ClimpConfig, SingularArg, FiniteArg, InfiniteArg} from './types';
+import type {
+  ClimpConfig,
+  SingularArg,
+  FiniteArg,
+  InfiniteArg,
+  ArgObj,
+} from './types';
 
 export default function (config: ClimpConfig) {
   // TODO validate config
@@ -40,7 +46,7 @@ export default function (config: ClimpConfig) {
       Parse args
     */
 
-    const argObj = {};
+    const argObj: ArgObj = {};
 
     let parseIndex = 0; // keep track of how many args we've parsed
 
