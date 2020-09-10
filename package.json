@@ -1,6 +1,6 @@
 {
   "name": "climp",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A tool for building Node CLIs",
   "main": "build/index.js",
   "types": "build/index.d.ts",
@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rimraf build",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "yarn build"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
