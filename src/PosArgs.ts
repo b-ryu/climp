@@ -78,7 +78,8 @@ export default class PosArgs {
         throw new ClimpError({message: ErrorMessage.UNEXPECTED_POS_ARG(value)});
       }
 
-      this.moveToAvailableStack(true);
+      this.incrementStack();
+      this.moveToAvailableStack();
 
       return this.parse(value);
     } else {
@@ -104,15 +105,12 @@ export default class PosArgs {
     this.moveToAvailableStack();
   };
 
-  moveToAvailableStack = (moveFirst = false) => {
-    if (moveFirst) {
-      this.stackIndex = 0;
-      this.currentStack = Math.min(
-        this.currentStack + 1,
-        this.stacks.length - 1
-      );
-    }
+  incrementStack = () => {
+    this.stackIndex = 0;
+    this.currentStack = Math.min(this.currentStack + 1, this.stacks.length - 1);
+  };
 
+  moveToAvailableStack = () => {
     while (
       this.currentLimitReached() &&
       this.currentStack < this.stacks.length - 1
