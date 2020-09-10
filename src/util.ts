@@ -175,9 +175,9 @@ export function parseArgs(
             valIndex
           ),
         });
-      } else {
-        break;
       }
+
+      break;
     }
 
     const value = commandArgs[valParseIndex];
@@ -187,9 +187,9 @@ export function parseArgs(
         throw new ClimpError({
           message: ErrorMessage.ARG_NAME_VALUE(value, argName),
         });
-      } else {
-        break;
       }
+
+      break;
     }
 
     const castedArgValue = castArgValue(value, valType);
@@ -199,9 +199,9 @@ export function parseArgs(
         throw new ClimpError({
           message: ErrorMessage.WRONG_ARG_TYPE(argName, valType, value),
         });
-      } else {
-        break;
       }
+
+      break;
     }
 
     values.push(castedArgValue);

@@ -1,10 +1,9 @@
 /*
   TODO
-  - improve pos arg support
   - validate config
   - support aliasing
-  - reduce LOC
   - add more tests
+  - improve naming
 */
 
 import ClimpError from './errors';
