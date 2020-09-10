@@ -1,6 +1,7 @@
 # 🐒 climp
 
 [![npm version](https://badge.fury.io/js/climp.svg)](https://badge.fury.io/js/climp)
+![ci](https://github.com/b-ryu/climp/workflows/Node.js%20CI/badge.svg)
 
 climp is a simple tool to help build Node CLIs.
 
