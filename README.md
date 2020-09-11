@@ -42,8 +42,7 @@ const cli = climp({
 });
 
 // ['node', 'my-script.js', 'do-something', '--argName', 'argValue']
-const args = [...process.argv];
-args.splice(0, 2);
+const args = process.argv.slice(2);
 
 cli(args); // doSomething({argName: 'argValue'})
 ```

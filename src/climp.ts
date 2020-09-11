@@ -3,7 +3,7 @@
   - validate config
   - support aliasing
   - add more tests
-  - improve naming
+  - improve naming/consistency
 */
 
 import ClimpError from './errors';
@@ -53,6 +53,10 @@ export default function (config: ClimpConfig) {
       const commmandArg = commandArgs[parseIndex];
 
       if (isArgName(commmandArg)) {
+        /*
+          Named arg
+        */
+
         const argName = commmandArg;
         const strippedArgName = stripArgName(argName);
 
