@@ -13,7 +13,7 @@ import {
   argType,
   getCommandArgs,
   getArgs,
-  parseArgs,
+  parseArgValues,
 } from './util';
 import {ErrorMessage} from './constants';
 
@@ -85,7 +85,12 @@ export default function (config: ClimpConfig) {
 
             const {types} = arg as FiniteArg;
 
-            const values = parseArgs(argName, parseIndex, commandArgs, types);
+            const values = parseArgValues(
+              argName,
+              parseIndex,
+              commandArgs,
+              types
+            );
 
             argObj[strippedArgName] = values;
 
@@ -104,7 +109,7 @@ export default function (config: ClimpConfig) {
               max = argv.length,
             } = arg as InfiniteArg;
 
-            const values = parseArgs(
+            const values = parseArgValues(
               argName,
               parseIndex,
               commandArgs,
@@ -135,7 +140,9 @@ export default function (config: ClimpConfig) {
 
             const {type} = arg as SingularArg;
 
-            const [value] = parseArgs(argName, parseIndex, commandArgs, [type]);
+            const [value] = parseArgValues(argName, parseIndex, commandArgs, [
+              type,
+            ]);
 
             argObj[strippedArgName] = value;
 

@@ -1,5 +1,5 @@
 import ClimpError from './errors';
-import {minimumPosArgs, castArgValue, isType} from './util';
+import {castArgValue, isType} from './util';
 import {ErrorMessage} from './constants';
 
 import type {PositionalArgsDescriptor, Type} from './types';
@@ -11,10 +11,9 @@ export default class PosArgs {
   readonly minRequired: number;
   readIn: number;
 
-  readonly stacks: PosArgStack[];
-  stackIndex: number;
-  currentStack: number;
-  reqStackIndices: number[];
+  private readonly stacks: PosArgStack[];
+  private stackIndex: number;
+  private currentStack: number;
 
   constructor(
     gReqPosArgs: PositionalArgsDescriptor, // required args
@@ -26,9 +25,6 @@ export default class PosArgs {
     this.stackIndex = 0;
     this.currentStack = 0;
 
-    this.minRequired =
-      minimumPosArgs(gReqPosArgs) + minimumPosArgs(cReqPosArgs);
-
     this.stacks = [
       new PosArgStack(gReqPosArgs),
       new PosArgStack(cReqPosArgs),
@@ -36,34 +32,13 @@ export default class PosArgs {
       new PosArgStack(cOptPosArgs),
     ];
 
-    this.moveToAvailableStack();
+    this.minRequired = this.stacks[0].minimum + this.stacks[1].minimum;
 
-    this.findRequiredArgStacks();
+    this.moveToAvailableStack();
   }
 
-  findRequiredArgStacks = () => {
-    this.reqStackIndices = [];
-
-    // Indices 0 and 1 hold the "required" pos args
-    // If minimum is 0, then required stacks are considered optional
-    if (this.stacks[0].minimum !== 0) {
-      this.reqStackIndices.push(0);
-    }
-    if (this.stacks[1].minimum !== 0) {
-      this.reqStackIndices.push(1);
-    }
-  };
-
-  currentLimitReached = () => {
-    return this.stacks[this.currentStack].reachedLimit(this.stackIndex);
-  };
-
-  onLastStack = () => {
-    return this.currentStack === this.stacks.length - 1;
-  };
-
   parse = (value: string): [string, string | number | boolean] => {
-    if (this.currentLimitReached() && this.onLastStack()) {
+    if (this.stackMaximumReached() && this.onLastStack()) {
       throw new ClimpError({message: ErrorMessage.UNEXPECTED_POS_ARG(value)});
     }
 
@@ -94,67 +69,65 @@ export default class PosArgs {
     }
   };
 
-  onOptionalStack = () => {
-    return !this.reqStackIndices.includes(this.currentStack);
+  minimumMet = () => {
+    return this.readIn >= this.minRequired;
   };
 
-  incrementStackIndex = () => {
+  private onLastStack = () => {
+    return this.currentStack >= this.stacks.length - 1;
+  };
+
+  private incrementStackIndex = () => {
     ++this.stackIndex;
     ++this.readIn;
 
     this.moveToAvailableStack();
   };
 
-  incrementStack = () => {
+  private incrementStack = () => {
     this.stackIndex = 0;
     this.currentStack = Math.min(this.currentStack + 1, this.stacks.length - 1);
   };
 
-  moveToAvailableStack = () => {
-    while (
-      this.currentLimitReached() &&
-      this.currentStack < this.stacks.length - 1
-    ) {
+  private moveToAvailableStack = () => {
+    while (this.stackMaximumReached() && !this.onLastStack()) {
       this.stackIndex = 0;
       ++this.currentStack;
     }
   };
 
-  stackMinimumMet = () => {
-    if (this.onOptionalStack()) {
+  private stackMinimumMet = () => {
+    if (this.minimumMet()) {
       return true;
     }
 
     return this.stackIndex >= this.stacks[this.currentStack].minimum;
   };
 
-  minimumMet = () => {
-    const {stacks, currentStack, stackIndex, reqStackIndices} = this;
-    const stack = stacks[currentStack];
+  private stackMaximumReached = () => {
+    const {stacks, currentStack, stackIndex} = this;
 
-    return (
-      this.onOptionalStack() ||
-      (currentStack === Math.max(...reqStackIndices) &&
-        stackIndex >= stack.minimum)
-    );
+    return stacks[currentStack].reachedLimit(stackIndex);
   };
 }
 
 class PosArgStack {
-  readonly length: number | null;
-  readonly posArgs: PositionalArgsDescriptor;
+  private readonly maximum: number | null;
+  private readonly posArgs: PositionalArgsDescriptor;
   readonly minimum: number;
 
   constructor(posArgs: PositionalArgsDescriptor) {
     this.posArgs = posArgs;
-    this.length = Array.isArray(posArgs) ? posArgs.length : posArgs.max || null;
+    this.maximum = Array.isArray(posArgs)
+      ? posArgs.length
+      : posArgs.max || null;
     this.minimum = Array.isArray(posArgs) ? posArgs.length : posArgs.min || 0;
   }
 
   reachedLimit = (index: number) => {
-    const {length} = this;
+    const {maximum} = this;
 
-    return length === null ? false : index >= length;
+    return maximum === null ? false : index >= maximum;
   };
 
   getNameAndType = (index: number): [string, Type] => {

@@ -58,38 +58,6 @@ export function isType(positionalArg: PositionalArg): positionalArg is Type {
   return typeof positionalArg === 'string';
 }
 
-export function normalizePositionalArgs(
-  positionalArgs: PositionalArgsDescriptor = [],
-  defaultMax: number
-): PositionalArg[] {
-  if (Array.isArray(positionalArgs)) {
-    return positionalArgs;
-  }
-
-  const {types, max = defaultMax} = positionalArgs;
-
-  return Array(max).fill(types);
-}
-
-export function minimumPosArgs(posArgs: PositionalArgsDescriptor = []) {
-  if (Array.isArray(posArgs)) {
-    return posArgs.length;
-  }
-
-  return posArgs.min || 0;
-}
-
-export function maximumPosArgs(
-  posArgs: PositionalArgsDescriptor = [],
-  defaultMax: number
-) {
-  if (Array.isArray(posArgs)) {
-    return posArgs.length;
-  }
-
-  return posArgs.max || defaultMax;
-}
-
 /*
   Derive a command and its options from a list of args and a config
 */
@@ -152,7 +120,7 @@ export function getArgs(
   ];
 }
 
-export function parseArgs(
+export function parseArgValues(
   argName: string,
   parseIndex: number,
   commandArgs: string[],

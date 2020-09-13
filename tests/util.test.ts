@@ -4,8 +4,6 @@ import {
   argType,
   castArgValue,
   isType,
-  normalizePositionalArgs,
-  minimumPosArgs,
 } from '../src/util';
 
 import type {
@@ -97,72 +95,6 @@ describe('util', () => {
       const posArg: PositionalArg = {name: 'arg', type: 'boolean'};
 
       expect(isType(posArg)).toBe(false);
-    });
-  });
-
-  describe('normalizePositionalArgs', () => {
-    it('returns already normalized pos arg descriptors', () => {
-      const posArgDescriptors: PositionalArgsDescriptor = [
-        {name: 'arg1', type: 'string'},
-        'string',
-        {name: 'arg2', type: 'boolean'},
-      ];
-      const defaultMax = 10;
-
-      expect(normalizePositionalArgs(posArgDescriptors, defaultMax)).toBe(
-        posArgDescriptors
-      );
-    });
-
-    it('normalizes pos arg descriptors using default maximum', () => {
-      const posArgDescriptors: PositionalArgsDescriptor = {types: 'boolean'};
-      const defaultMax = 10;
-
-      expect(
-        normalizePositionalArgs(posArgDescriptors, defaultMax)
-      ).toStrictEqual(Array(defaultMax).fill('boolean'));
-    });
-
-    it('normalizes pos arg descriptors using configured maximum', () => {
-      const max = 15;
-      const posArgDescriptors: PositionalArgsDescriptor = {
-        types: 'boolean',
-        max,
-      };
-      const defaultMax = 10;
-
-      expect(
-        normalizePositionalArgs(posArgDescriptors, defaultMax)
-      ).toStrictEqual(Array(max).fill('boolean'));
-    });
-  });
-
-  describe('minimumPosArgs', () => {
-    it('returns the length of a finite array if passed in', () => {
-      const posArgs: PositionalArgsDescriptor = [
-        'string',
-        'boolean',
-        {name: 'arg', type: 'cast'},
-      ];
-
-      expect(minimumPosArgs(posArgs)).toEqual(3);
-    });
-
-    it('returns the minimum of a descriptor if passed in', () => {
-      const posArgs: PositionalArgsDescriptor = {
-        types: 'string',
-        min: 2,
-      };
-
-      expect(minimumPosArgs(posArgs)).toEqual(2);
-    });
-
-    it('returns zero if neither a minimum nor finite length is passed in', () => {
-      const posArgs: PositionalArgsDescriptor = {
-        types: 'string',
-      };
-
-      expect(minimumPosArgs(posArgs)).toEqual(0);
     });
   });
 });
