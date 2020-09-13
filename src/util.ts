@@ -27,7 +27,6 @@ export function argType(arg: Arg) {
   }
 }
 
-// Returns null if argValue cannot be properly casted
 export function castArgValue(argValue: string, type: Type) {
   if (type === 'boolean' || type === 'cast') {
     switch (argValue.toLowerCase()) {
@@ -57,9 +56,6 @@ export function isType(positionalArg: PositionalArg): positionalArg is Type {
   return typeof positionalArg === 'string';
 }
 
-/*
-  Derive a command and its options from a list of args and a config
-*/
 export function getCommandArgs(
   args: string[],
   config: ClimpConfig
@@ -86,9 +82,6 @@ export function getCommandArgs(
   }
 }
 
-/*
-  Derive consolidated args/positional args for a given command
-*/
 export function getArgs(
   command: Command,
   config: ClimpConfig

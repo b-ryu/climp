@@ -1,11 +1,3 @@
-/*
-  TODO
-  - validate config
-  - support aliasing
-  - add more tests
-  - improve naming/consistency
-*/
-
 import ClimpError from './errors';
 import {
   stripArgName,
@@ -29,34 +21,17 @@ export default function (config: ClimpConfig) {
   // TODO validate config
 
   return (argv: string[] = []) => {
-    /*
-      Get command
-    */
-
     const [command, commandArgs] = getCommandArgs(argv, config);
-
-    /*
-      Get args
-    */
-
     const [args, posArgs] = getArgs(command, config);
-
-    /*
-      Parse args
-    */
 
     const argObj: ArgObj = {};
 
-    let parseIndex = 0; // keep track of how many args we've parsed
+    let parseIndex = 0;
 
     while (parseIndex < commandArgs.length) {
       const commmandArg = commandArgs[parseIndex];
 
       if (isArgName(commmandArg)) {
-        /*
-          Named arg
-        */
-
         const argName = commmandArg;
         const strippedArgName = stripArgName(argName);
 
@@ -70,19 +45,11 @@ export default function (config: ClimpConfig) {
 
         switch (argType(arg)) {
           case 'boolean': {
-            /*
-              Boolean arg
-            */
-
             argObj[strippedArgName] = true;
 
             break;
           }
           case 'finite': {
-            /*
-              Finite arg
-            */
-
             const {types} = arg as FiniteArg;
 
             const values = parseArgValues(
@@ -99,10 +66,6 @@ export default function (config: ClimpConfig) {
             break;
           }
           case 'infinite': {
-            /*
-              Infinite arg
-            */
-
             const {
               types: type,
               min = 0,
@@ -134,10 +97,6 @@ export default function (config: ClimpConfig) {
             break;
           }
           case 'singular': {
-            /*
-              Singular arg
-            */
-
             const {type} = arg as SingularArg;
 
             const [value] = parseArgValues(argName, parseIndex, commandArgs, [
@@ -152,10 +111,6 @@ export default function (config: ClimpConfig) {
           }
         }
       } else {
-        /*
-          Positional arg
-        */
-
         const [posArgName, posArgValue] = posArgs.parse(commmandArg);
 
         argObj[posArgName] = posArgValue;
@@ -164,9 +119,7 @@ export default function (config: ClimpConfig) {
       ++parseIndex;
     }
 
-    /*
-      Check for missing required args
-    */
+    // Check for missing required args
 
     Object.keys(args).forEach((argName) => {
       if (args[argName].required && argObj[argName] == undefined) {

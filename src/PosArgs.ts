@@ -4,9 +4,6 @@ import {ErrorMessage} from './constants';
 
 import type {PositionalArgsDescriptor, Type} from './types';
 
-/*
-  Object to keep track of positional arg parsing
-*/
 export default class PosArgs {
   readonly minRequired: number;
   readIn: number;
@@ -16,8 +13,8 @@ export default class PosArgs {
   private currentStack: number;
 
   constructor(
-    reqPosArgs: PositionalArgsDescriptor[], // required args
-    optPosArgs: PositionalArgsDescriptor[] // required args
+    reqPosArgs: PositionalArgsDescriptor[],
+    optPosArgs: PositionalArgsDescriptor[]
   ) {
     this.readIn = 0;
     this.stackIndex = 0;
