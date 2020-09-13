@@ -18,8 +18,6 @@ import type {
 } from './types';
 
 export default function (config: ClimpConfig) {
-  // TODO validate config
-
   return (argv: string[] = []) => {
     const [command, commandArgs] = getCommandArgs(argv, config);
     const [args, posArgs] = getArgs(command, config);
@@ -119,8 +117,6 @@ export default function (config: ClimpConfig) {
       ++parseIndex;
     }
 
-    // Check for missing required args
-
     Object.keys(args).forEach((argName) => {
       if (args[argName].required && argObj[argName] == undefined) {
         throw new ClimpError({
@@ -128,7 +124,6 @@ export default function (config: ClimpConfig) {
         });
       }
     });
-
     if (!posArgs.minimumMet()) {
       throw new ClimpError({
         message: ErrorMessage.NOT_ENOUGH_POS_ARGS(
