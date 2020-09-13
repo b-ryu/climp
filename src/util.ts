@@ -6,7 +6,6 @@ import type {
   Arg,
   Type,
   PositionalArg,
-  PositionalArgsDescriptor,
   ClimpConfig,
   Command,
   ArgValue,
@@ -116,7 +115,7 @@ export function getArgs(
       ...cArgs,
       ...gArgs,
     },
-    new PosArgs(gReqPosArgs, cReqPosArgs, gOptPosArgs, cOptPosArgs),
+    new PosArgs([gReqPosArgs, cReqPosArgs], [gOptPosArgs, cOptPosArgs]),
   ];
 }
 

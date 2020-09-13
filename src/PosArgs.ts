@@ -16,23 +16,26 @@ export default class PosArgs {
   private currentStack: number;
 
   constructor(
-    gReqPosArgs: PositionalArgsDescriptor, // required args
-    cReqPosArgs: PositionalArgsDescriptor, // required args
-    gOptPosArgs: PositionalArgsDescriptor,
-    cOptPosArgs: PositionalArgsDescriptor
+    reqPosArgs: PositionalArgsDescriptor[], // required args
+    optPosArgs: PositionalArgsDescriptor[] // required args
   ) {
     this.readIn = 0;
     this.stackIndex = 0;
     this.currentStack = 0;
 
-    this.stacks = [
-      new PosArgStack(gReqPosArgs),
-      new PosArgStack(cReqPosArgs),
-      new PosArgStack(gOptPosArgs),
-      new PosArgStack(cOptPosArgs),
-    ];
+    const reqPosArgStacks = reqPosArgs.map(
+      (posArgs) => new PosArgStack(posArgs)
+    );
+    const optPosArgStacks = optPosArgs.map(
+      (posArgs) => new PosArgStack(posArgs)
+    );
 
-    this.minRequired = this.stacks[0].minimum + this.stacks[1].minimum;
+    this.stacks = [...reqPosArgStacks, ...optPosArgStacks];
+
+    this.minRequired = reqPosArgStacks.reduce(
+      (min, stack) => stack.minimum + min,
+      0
+    );
 
     this.moveToAvailableStack();
   }
