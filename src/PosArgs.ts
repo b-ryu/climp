@@ -54,7 +54,6 @@ export default class PosArgs {
       }
 
       this.incrementStack();
-      this.moveToAvailableStack();
 
       return this.parse(value);
     } else {
@@ -77,16 +76,18 @@ export default class PosArgs {
     return this.currentStack >= this.stacks.length - 1;
   };
 
-  private incrementStackIndex = () => {
-    ++this.stackIndex;
-    ++this.readIn;
+  private incrementStackIndex = (i = 1) => {
+    this.stackIndex += i;
+    this.readIn += i;
 
     this.moveToAvailableStack();
   };
 
-  private incrementStack = () => {
+  private incrementStack = (i = 1) => {
     this.stackIndex = 0;
-    this.currentStack = Math.min(this.currentStack + 1, this.stacks.length - 1);
+    this.currentStack = Math.min(this.currentStack + i, this.stacks.length - 1);
+
+    this.moveToAvailableStack();
   };
 
   private moveToAvailableStack = () => {
