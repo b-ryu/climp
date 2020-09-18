@@ -13,6 +13,20 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
+  "keywords": [
+    "cli",
+    "command",
+    "command line",
+    "argument",
+    "arguments",
+    "args",
+    "argv",
+    "option",
+    "options",
+    "flags",
+    "parser",
+    "parsing"
+  ],
   "license": "MIT",
   "scripts": {
     "build": "tsc",
