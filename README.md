@@ -53,6 +53,8 @@ Check out the tests (`tests/climp.test.ts`) for some more examples on usage.
 
 ## Config
 
+> _climp is fully typed, and thus it may be helpful to explore [its type declarations](./src/types.ts)_
+
 Below is a more detailed explanation/example of climp's config object:
 
 ```ts
@@ -64,6 +66,97 @@ interface Config {
   };
 }
 ```
+
+### `commmands`
+
+`commands` is an object you can use to map command names to their `Command` configs.
+
+```ts
+interface Command {
+  func: CommandFunction;
+  args?: Args;
+  positionalArgs?: PositionalArgs;
+}
+```
+
+`func` is the function that will ultimately be called with the parsed argument body. You can specify parsing behaviour with your `args` and `positionalArgs` configs.
+
+#### `Command.args`
+
+`Command.args` refers to your **named args**, that is, the args that are prefixed with `--` and may optionally be followed by associated values.
+
+Named args may be assigned a type, and also a range of number of values that may be accepted alongside it.
+
+For instance, a `BoolArg` needs only a type specification, since the inclusion/exclusion of a boolean flag is meaningful on its own (include it to set it to `true`, exclude it to set it to `false`).
+
+```ts
+interface BoolArg extends BasicArg {
+  type: 'boolean';
+  required?: false;
+}
+```
+
+A `SingularArg` accepts in a single value after the argument name itself. Thus passing in the arg-value pair `--arg-name arg-value` to your command will set `arg-name` in your final arg body to have the value `arg-value`.
+
+```ts
+interface SingularArg extends BasicArg {
+  type: Exclude<Type, 'boolean'>;
+}
+```
+
+`FiniteArg` and `InfiniteArg` are similar, in that you may specify a finite list of `types` to assert upon your values, or accept a range from `min` to `max` values of a given type.
+
+```ts
+interface FiniteArg extends BasicArg {
+  types: Type[];
+}
+
+interface InfiniteArg extends BasicArg {
+  types: Type;
+  min?: number;
+  max?: number;
+}
+```
+
+#### `Command.positionalArgs`
+
+`Command.positionalArgs` refers to your **positional args**, that is, the args that are imbued meaning via their indexed position within the command string.
+
+Positional args may be either `required` or `optional`, and may be expressed as a list of `PositionalArg`s or a `InfinitePositionalArgs` config object. The latter works similarly to the `InfiniteArg` option in that it accepts a range of value counts.
+
+```ts
+type Type = 'boolean' | 'string' | 'number' | 'cast';
+
+interface PositionalArgs {
+  required?: PositionalArgsDescriptor;
+  optional?: PositionalArgsDescriptor;
+}
+
+type PositionalArgsDescriptor = PositionalArg[] | InfinitePositionalArgs;
+
+type PositionalArg = NamedPositionalArg | Type;
+
+// You may choose to label your positional args in the final arg body; otherwise they are given numeric keys
+interface NamedPositionalArg {
+  name?: string;
+  type: Type;
+}
+
+interface InfinitePositionalArgs {
+  types: Type;
+  min?: number;
+  max?: number;
+}
+```
+
+### `global`
+
+`global` is where you can define your CLI's top-level arguments (i.e. the arguments that apply to all your commands). `args` and `positionalArgs` refer to your global named and positional args respectively.
+
+Some notes on parsing behaviour:
+
+- If a global and command named arg share the same name, the **command named arg will take precedence**
+- The parsing will prioritize **global positional args** before command positional args. Furthermore, required positional args will be considered first
 
 ## Errors
 
@@ -90,5 +183,3 @@ try {
   }
 }
 ```
-
-In the future I may plan on adding an error-handler config option to help make this a little nicer-looking.
