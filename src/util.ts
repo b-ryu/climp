@@ -1,6 +1,6 @@
 import {ARGUMENT_PREFIX, DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
 import PosArgsParser from './posargs';
-import type {PosArgsParserInterface} from './PosArgs';
+import type {PosArgsParserInterface} from './posargs';
 import ClimpError from './errors';
 
 import type {
