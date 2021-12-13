@@ -1,5 +1,6 @@
 import {ARGUMENT_PREFIX, DEFAULT_COMMAND_NAME, ErrorMessage} from './constants';
-import PosArgs from './PosArgs';
+import PosArgsParser from './posargs';
+import type {PosArgsParserInterface} from './PosArgs';
 import ClimpError from './errors';
 
 import type {
@@ -104,7 +105,7 @@ export function splitCommandAndArgs(
 export function getCommandArgConfig(
   command: Command,
   config: ClimpConfig
-): [Record<string, Arg>, PosArgs] {
+): [Record<string, Arg>, PosArgsParserInterface] {
   const {
     args: commandArgs = {},
     positionalArgs: {
@@ -127,7 +128,7 @@ export function getCommandArgConfig(
       ...globalArgs,
       ...commandArgs, // command args should override globals if defined
     },
-    new PosArgs(
+    PosArgsParser(
       [globalReqPosArgs, commandReqPosArgs], // we should parse global args first, command args next
       [globalOptPosArgs, commandOptPosArgs]
     ),

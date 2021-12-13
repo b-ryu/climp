@@ -119,8 +119,8 @@ export default function (config: ClimpConfig) {
     if (!posArgsParser.minimumMet()) {
       throw new ClimpError({
         message: ErrorMessage.NOT_ENOUGH_POS_ARGS(
-          posArgsParser.minRequired,
-          posArgsParser.readIn
+          posArgsParser.getTotalMinRequired(),
+          posArgsParser.getTotalNumberReadIn()
         ),
       });
     }
