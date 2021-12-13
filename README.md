@@ -13,7 +13,7 @@ yarn add climp
 
 ## Usage
 
-climp's default export is a function called `climp`, which takes in a config object that describes what you want your CLI to do and look like.
+climp's default export is a function that takes in a config object describing what you want your CLI to do and look like.
 
 It returns another function that you can then pass arguments to. Your generated CLI function will handle parsing and validating options, and will call the function mapped to each command in your config object.
 
