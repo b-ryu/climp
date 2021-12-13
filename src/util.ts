@@ -139,40 +139,32 @@ export function getCommandArgConfig(
 // with specified types
 export function parseArgValues(
   argName: string,
-  parseIndex: number,
   commandArgs: string[],
   types: Type[],
   strict = true
 ): ArgValue[] {
   const values: ArgValue[] = [];
-
   try {
-    while (values.length < types.length) {
-      const valIndex = values.length;
-      const valType = types[valIndex];
-      const valParseIndex = parseIndex + valIndex + 1;
-
-      if (valParseIndex >= commandArgs.length) {
+    for (let i = 0; i < types.length; ++i) {
+      const type = types[i];
+      if (i >= commandArgs.length)
         throw new ClimpError({
           message: ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES(
             argName,
             types.length,
-            valIndex
+            values.length
           ),
         });
-      }
-      const value = commandArgs[valParseIndex];
-      if (isArgName(value)) {
+      const value = commandArgs[i];
+      if (isArgName(value))
         throw new ClimpError({
           message: ErrorMessage.ARG_NAME_VALUE(value, argName),
         });
-      }
-      const castedArgValue = castArgValue(value, valType);
-      if (castedArgValue === null) {
+      const castedArgValue = castArgValue(value, type);
+      if (castedArgValue === null)
         throw new ClimpError({
-          message: ErrorMessage.WRONG_ARG_TYPE(argName, valType, value),
+          message: ErrorMessage.WRONG_ARG_TYPE(argName, type, value),
         });
-      }
       values.push(castedArgValue);
     }
   } catch (e) {
@@ -180,6 +172,5 @@ export function parseArgValues(
       throw e;
     }
   }
-
   return values;
 }

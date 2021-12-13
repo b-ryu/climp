@@ -61,8 +61,7 @@ export default function (config: ClimpConfig) {
           const {types} = arg as FiniteArg;
           const values = parseArgValues(
             argName,
-            parseIndex,
-            commandArgs,
+            commandArgs.slice(parseIndex + 1),
             types
           );
           argBody[strippedArgName] = values;
@@ -74,8 +73,7 @@ export default function (config: ClimpConfig) {
           const {types: type, min = 0, max = argv.length} = arg as InfiniteArg;
           const values = parseArgValues(
             argName,
-            parseIndex,
-            commandArgs,
+            commandArgs.slice(parseIndex + 1),
             Array(max).fill(type),
             false
           );
@@ -96,9 +94,11 @@ export default function (config: ClimpConfig) {
         case 'singular': {
           // Singular args are really just a subset of finite args
           const {type} = arg as SingularArg;
-          const [value] = parseArgValues(argName, parseIndex, commandArgs, [
-            type,
-          ]);
+          const [value] = parseArgValues(
+            argName,
+            commandArgs.slice(parseIndex + 1),
+            [type]
+          );
           argBody[strippedArgName] = value;
           parseIndex += 2;
           continue;
