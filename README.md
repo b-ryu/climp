@@ -20,7 +20,7 @@ It returns another function that you can then pass arguments to. Your generated 
 ```js
 // my-script.js
 
-const climp = require('climp').default;
+const {default: climp} = require('climp');
 
 // Import functions from your own code
 const {doSomething, doAnotherThing} = require('./my-code');
@@ -30,7 +30,7 @@ const cli = climp({
     'do-something': {
       func: doSomething,
       args: {
-        argName: {
+        'arg-name': {
           type: 'string',
         },
       },
@@ -41,13 +41,13 @@ const cli = climp({
   },
 });
 
-// ['node', 'my-script.js', 'do-something', '--argName', 'argValue']
+// ['node', 'my-script.js', 'do-something', '--arg-name', 'arg-value']
 const args = process.argv.slice(2);
 
-cli(args); // doSomething({argName: 'argValue'})
+cli(args); // doSomething({'arg-name': 'arg-value'})
 ```
 
-Note that it's up to you to trim off any unwanted arguments (i.e. `node`, `my-script.js`) before passing it to climp's CLI. You might get an error otherwise.
+_Note that it's up to you to trim off any unwanted arguments (i.e. `node`, `my-script.js`) before passing it to climp's CLI. You might get an error otherwise._
 
 Check out the tests (`tests/climp.test.ts`) for some more examples on usage.
 
@@ -64,18 +64,6 @@ interface Config {
   };
 }
 ```
-
-### `Commands`
-
-_TODO write docs_
-
-### `Args`
-
-_TODO write docs_
-
-### `PositionalArgs`
-
-_TODO write docs_
 
 ## Errors
 

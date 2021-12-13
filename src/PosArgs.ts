@@ -4,6 +4,7 @@ import {ErrorMessage} from './constants';
 
 import type {PositionalArgsDescriptor, Type} from './types';
 
+// Stack-based parsing class for positional args
 export default class PosArgs {
   readonly minRequired: number;
   readIn: number;

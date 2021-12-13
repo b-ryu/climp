@@ -3,8 +3,8 @@ import {
   stripArgName,
   isArgName,
   argType,
-  getCommandArgs,
-  getArgs,
+  splitCommandAndArgs,
+  getCommandArgConfig,
   parseArgValues,
 } from './util';
 import {ErrorMessage} from './constants';
@@ -19,120 +19,112 @@ import type {
 
 export default function (config: ClimpConfig) {
   return (argv: string[] = []) => {
-    const [command, commandArgs] = getCommandArgs(argv, config);
-    const [args, posArgs] = getArgs(command, config);
+    const [command, commandArgs] = splitCommandAndArgs(argv, config);
+    const [argsConfig, posArgsParser] = getCommandArgConfig(command, config);
 
-    const argObj: ArgObj = {};
+    // Parse args
+    const argBody: ArgObj = {}; // the arg body is what gets passed to the final function
 
     let parseIndex = 0;
-
     while (parseIndex < commandArgs.length) {
       const commmandArg = commandArgs[parseIndex];
 
-      if (isArgName(commmandArg)) {
-        const argName = commmandArg;
-        const strippedArgName = stripArgName(argName);
-
-        const arg = args[strippedArgName];
-
-        if (arg == undefined) {
-          throw new ClimpError({
-            message: ErrorMessage.UNRECOGNIZED_ARG(argName),
-          });
-        }
-
-        switch (argType(arg)) {
-          case 'boolean': {
-            argObj[strippedArgName] = true;
-
-            break;
-          }
-          case 'finite': {
-            const {types} = arg as FiniteArg;
-
-            const values = parseArgValues(
-              argName,
-              parseIndex,
-              commandArgs,
-              types
-            );
-
-            argObj[strippedArgName] = values;
-
-            parseIndex += values.length;
-
-            break;
-          }
-          case 'infinite': {
-            const {
-              types: type,
-              min = 0,
-              max = argv.length,
-            } = arg as InfiniteArg;
-
-            const values = parseArgValues(
-              argName,
-              parseIndex,
-              commandArgs,
-              Array(max).fill(type),
-              false
-            );
-
-            if (values.length < min) {
-              throw new ClimpError({
-                message: ErrorMessage.NOT_ENOUGH_ARG_VALUES(
-                  argName,
-                  min,
-                  values.length
-                ),
-              });
-            }
-
-            argObj[strippedArgName] = values;
-
-            parseIndex += values.length;
-
-            break;
-          }
-          case 'singular': {
-            const {type} = arg as SingularArg;
-
-            const [value] = parseArgValues(argName, parseIndex, commandArgs, [
-              type,
-            ]);
-
-            argObj[strippedArgName] = value;
-
-            ++parseIndex;
-
-            break;
-          }
-        }
-      } else {
-        const [posArgName, posArgValue] = posArgs.parse(commmandArg);
-
-        argObj[posArgName] = posArgValue;
+      // Parse positional args
+      if (!isArgName(commmandArg)) {
+        const [posArgName, posArgValue] = posArgsParser.parse(commmandArg);
+        argBody[posArgName] = posArgValue;
+        ++parseIndex;
+        continue;
       }
 
-      ++parseIndex;
+      // Parse named args
+      const argName = commmandArg;
+      const strippedArgName = stripArgName(argName);
+      const arg = argsConfig[strippedArgName];
+
+      if (arg == undefined) {
+        throw new ClimpError({
+          message: ErrorMessage.UNRECOGNIZED_ARG(argName),
+        });
+      }
+
+      // Parse based on arg type
+      switch (argType(arg)) {
+        case 'boolean': {
+          // Boolean flags simply get set to true if present
+          argBody[strippedArgName] = true;
+          ++parseIndex;
+          continue;
+        }
+        case 'finite': {
+          // Finite args count the exact number of following args as values
+          const {types} = arg as FiniteArg;
+          const values = parseArgValues(
+            argName,
+            parseIndex,
+            commandArgs,
+            types
+          );
+          argBody[strippedArgName] = values;
+          parseIndex += 1 + values.length;
+          continue;
+        }
+        case 'infinite': {
+          // Infinite/indefinite args parse as many as it can up to the maximum
+          const {types: type, min = 0, max = argv.length} = arg as InfiniteArg;
+          const values = parseArgValues(
+            argName,
+            parseIndex,
+            commandArgs,
+            Array(max).fill(type),
+            false
+          );
+          // If the minimum was not met, throw an error
+          if (values.length < min) {
+            throw new ClimpError({
+              message: ErrorMessage.NOT_ENOUGH_ARG_VALUES(
+                argName,
+                min,
+                values.length
+              ),
+            });
+          }
+          argBody[strippedArgName] = values;
+          parseIndex += 1 + values.length;
+          continue;
+        }
+        case 'singular': {
+          // Singular args are really just a subset of finite args
+          const {type} = arg as SingularArg;
+          const [value] = parseArgValues(argName, parseIndex, commandArgs, [
+            type,
+          ]);
+          argBody[strippedArgName] = value;
+          parseIndex += 2;
+          continue;
+        }
+      }
     }
 
-    Object.keys(args).forEach((argName) => {
-      if (args[argName].required && argObj[argName] == undefined) {
+    // Verify that all required named arguments were passed in
+    Object.entries(argsConfig).forEach(([argName, arg]) => {
+      if (arg.required && argBody[argName] == undefined) {
         throw new ClimpError({
           message: ErrorMessage.MISSING_REQUIRED_ARG(argName),
         });
       }
     });
-    if (!posArgs.minimumMet()) {
+
+    // Verify that a sufficient number of positional arguments were passed in
+    if (!posArgsParser.minimumMet()) {
       throw new ClimpError({
         message: ErrorMessage.NOT_ENOUGH_POS_ARGS(
-          posArgs.minRequired,
-          posArgs.readIn
+          posArgsParser.minRequired,
+          posArgsParser.readIn
         ),
       });
     }
 
-    return command.func(argObj);
+    return command.func(argBody);
   };
 }

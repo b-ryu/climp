@@ -11,14 +11,17 @@ import type {
   ArgValue,
 } from './types';
 
+// Strips a prefix from a named arg (e.g. --<arg> => <arg>)
 export function stripArgName(argName: string) {
   return argName.substring(ARGUMENT_PREFIX.length);
 }
 
+// Returns true if an arg is a named arg (i.e. starts with '--')
 export function isArgName(arg: string) {
   return arg.startsWith(ARGUMENT_PREFIX);
 }
 
+// Returns the arg type
 export function argType(arg: Arg) {
   if ('type' in arg) {
     return arg.type === 'boolean' ? 'boolean' : 'singular';
@@ -27,91 +30,112 @@ export function argType(arg: Arg) {
   }
 }
 
+function castBooleanArgValue(argValue: string): boolean | null {
+  switch (argValue.toLowerCase()) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    default:
+      return null;
+  }
+}
+
+function castNumberArgValue(argValue: string): number | null {
+  const numberValue = Number(argValue);
+  return isNaN(numberValue) ? null : numberValue;
+}
+
+// Casts an arg value to a type, if possible
 export function castArgValue(argValue: string, type: Type) {
-  if (type === 'boolean' || type === 'cast') {
-    switch (argValue.toLowerCase()) {
-      case 'true':
-        return true;
-      case 'false':
-        return false;
-      default:
-        if (type === 'boolean') return null;
+  switch (type) {
+    case 'boolean': {
+      return castBooleanArgValue(argValue);
     }
-  }
-
-  if (type === 'number' || type === 'cast') {
-    const numberValue = Number(argValue);
-
-    if (isNaN(numberValue)) {
-      if (type === 'number') return null;
-    } else {
-      return numberValue;
+    case 'number': {
+      return castNumberArgValue(argValue);
     }
+    case 'cast': {
+      const castedBooleanArgValue = castBooleanArgValue(argValue);
+      if (castedBooleanArgValue !== null) return castedBooleanArgValue;
+      const castedNumberArgValue = castNumberArgValue(argValue);
+      if (castedNumberArgValue !== null) return castedNumberArgValue;
+    }
+    default:
+      // string
+      return argValue;
   }
-
-  return argValue;
 }
 
 export function isType(positionalArg: PositionalArg): positionalArg is Type {
   return typeof positionalArg === 'string';
 }
 
-export function getCommandArgs(
+// Splits a list of params into a commnad name and command args
+export function splitCommandAndArgs(
   args: string[],
   config: ClimpConfig
 ): [Command, string[]] {
   const {commands} = config;
   const [firstArg, ...restArgs] = args;
 
-  if (firstArg === undefined) {
+  // If no args were passed in at all...
+  if (args.length === 0) {
     if (commands[DEFAULT_COMMAND_NAME]) {
       return [commands[DEFAULT_COMMAND_NAME], []];
     } else {
-      throw new ClimpError({
-        message: ErrorMessage.NO_ARGS(),
-      });
+      throw new ClimpError({message: ErrorMessage.NO_ARGS()});
     }
-  } else if (commands[firstArg]) {
-    return [commands[firstArg], restArgs];
-  } else if (commands[DEFAULT_COMMAND_NAME]) {
-    return [commands[DEFAULT_COMMAND_NAME], args];
-  } else {
-    throw new ClimpError({
-      message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
-    });
   }
+
+  // If arg is provided then we return that plus the remainder of the args
+  if (commands[firstArg]) return [commands[firstArg], restArgs];
+
+  // If arg is not provided then we presume the default plus the total list of args
+  if (commands[DEFAULT_COMMAND_NAME])
+    return [commands[DEFAULT_COMMAND_NAME], args];
+
+  throw new ClimpError({
+    message: ErrorMessage.UNRECOGNIZED_COMMAND(firstArg),
+  });
 }
 
-export function getArgs(
+// Gets the global and positional args for a given command based on the config
+export function getCommandArgConfig(
   command: Command,
   config: ClimpConfig
 ): [Record<string, Arg>, PosArgs] {
   const {
-    args: cArgs = {},
+    args: commandArgs = {},
     positionalArgs: {
-      optional: cOptPosArgs = [],
-      required: cReqPosArgs = [],
+      optional: commandOptPosArgs = [],
+      required: commandReqPosArgs = [],
     } = {},
   } = command;
   const {
     global: {
-      args: gArgs = {},
+      args: globalArgs = {},
       positionalArgs: {
-        optional: gOptPosArgs = [],
-        required: gReqPosArgs = [],
+        optional: globalOptPosArgs = [],
+        required: globalReqPosArgs = [],
       } = {},
     } = {},
   } = config;
 
   return [
     {
-      ...cArgs,
-      ...gArgs,
+      ...globalArgs,
+      ...commandArgs, // command args should override globals if defined
     },
-    new PosArgs([gReqPosArgs, cReqPosArgs], [gOptPosArgs, cOptPosArgs]),
+    new PosArgs(
+      [globalReqPosArgs, commandReqPosArgs], // we should parse global args first, command args next
+      [globalOptPosArgs, commandOptPosArgs]
+    ),
   ];
 }
 
+// Given an arg name, an arg index, and a list of args, returns a list of values for that arg
+// with specified types
 export function parseArgValues(
   argName: string,
   parseIndex: number,
@@ -121,13 +145,13 @@ export function parseArgValues(
 ): ArgValue[] {
   const values: ArgValue[] = [];
 
-  while (values.length < types.length) {
-    const valIndex = values.length;
-    const valType = types[valIndex];
-    const valParseIndex = parseIndex + valIndex + 1;
+  try {
+    while (values.length < types.length) {
+      const valIndex = values.length;
+      const valType = types[valIndex];
+      const valParseIndex = parseIndex + valIndex + 1;
 
-    if (valParseIndex >= commandArgs.length) {
-      if (strict) {
+      if (valParseIndex >= commandArgs.length) {
         throw new ClimpError({
           message: ErrorMessage.WRONG_NUMBER_OF_ARG_VALUES(
             argName,
@@ -136,35 +160,24 @@ export function parseArgValues(
           ),
         });
       }
-
-      break;
-    }
-
-    const value = commandArgs[valParseIndex];
-
-    if (isArgName(value)) {
-      if (strict) {
+      const value = commandArgs[valParseIndex];
+      if (isArgName(value)) {
         throw new ClimpError({
           message: ErrorMessage.ARG_NAME_VALUE(value, argName),
         });
       }
-
-      break;
-    }
-
-    const castedArgValue = castArgValue(value, valType);
-
-    if (castedArgValue === null) {
-      if (strict) {
+      const castedArgValue = castArgValue(value, valType);
+      if (castedArgValue === null) {
         throw new ClimpError({
           message: ErrorMessage.WRONG_ARG_TYPE(argName, valType, value),
         });
       }
-
-      break;
+      values.push(castedArgValue);
     }
-
-    values.push(castedArgValue);
+  } catch (e) {
+    if (strict || !(e instanceof ClimpError)) {
+      throw e;
+    }
   }
 
   return values;
